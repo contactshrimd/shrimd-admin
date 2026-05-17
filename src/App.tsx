@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from './auth/useAuth';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { SignInPage } from './auth/SignInPage';
 import { ADMIN_ROLES, AdminRole, getVisibleRoutes, routes } from './routes';
-import { useState } from 'react';
+import { PatientSearchScreen } from './screens/PatientSearchScreen';
 
 const roleLabels: Record<AdminRole, string> = {
   support_agent: 'Support Agent',
@@ -57,7 +57,9 @@ function AdminShell() {
           </div>
         </header>
 
-        {activeRoute ? (
+        {activeRoute?.id === 'patient-search' ? (
+          <PatientSearchScreen />
+        ) : activeRoute ? (
           <section className="panel">
             <div>
               <h3>{activeRoute.summary}</h3>
@@ -74,7 +76,7 @@ function AdminShell() {
               </div>
               <div>
                 <dt>Mode</dt>
-                <dd>{activeRoute.status === 'live' ? 'Available after Firebase sign-in' : 'No network calls yet'}</dd>
+                <dd>{activeRoute.status === 'deferred' ? 'Coming soon' : 'Live'}</dd>
               </div>
             </dl>
           </section>

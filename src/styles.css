@@ -303,6 +303,149 @@ nav {
   border-color: #b0bfb5;
 }
 
+/* Patient search screen */
+.screen {
+  display: grid;
+  gap: 20px;
+  max-width: 1100px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-input {
+  flex: 1;
+  border: 1px solid #cbd8cf;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 0.95rem;
+  background: #ffffff;
+  color: #17211b;
+}
+
+.search-input:focus {
+  border-color: #3b7c55;
+  outline: 2px solid #3b7c5533;
+}
+
+.search-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #dce4d8;
+  border-top-color: #2e6646;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.screen-empty {
+  padding: 40px 0;
+  color: #7a9080;
+  text-align: center;
+}
+
+.screen-error {
+  border-radius: 6px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #dce4d8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.data-table th {
+  padding: 10px 14px;
+  border-bottom: 1px solid #dce4d8;
+  background: #f6f8f4;
+  color: #52645a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid #edf2ee;
+  color: #1f2c25;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover td {
+  background: #f8faf7;
+}
+
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: #e5ece7;
+  color: #2a4535;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.badge-unavailable {
+  background: transparent;
+  color: #a0b0a5;
+}
+
+.patient-id {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: #557063;
+}
+
+.unavailable {
+  color: #a0b0a5;
+}
+
+.skeleton-row td {
+  padding: 14px;
+}
+
+.skeleton-cell {
+  display: block;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e8eee9 25%, #f4f7f4 50%, #e8eee9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  width: 80%;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 @media (max-width: 760px) {
   .admin-shell {
     grid-template-columns: 1fr;
