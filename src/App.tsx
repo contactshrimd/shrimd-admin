@@ -6,6 +6,7 @@ import { ADMIN_ROLES, AdminRole, getVisibleRoutes, routes } from './routes';
 import { PatientSearchScreen } from './screens/PatientSearchScreen';
 import { PatientDetailScreen } from './screens/PatientDetailScreen';
 import { AuditLogsScreen } from './screens/AuditLogsScreen';
+import { WorkflowCommandsScreen } from './screens/WorkflowCommandsScreen';
 
 const roleLabels: Record<AdminRole, string> = {
   support_agent: 'Support Agent',
@@ -71,6 +72,8 @@ function AdminShell() {
           <PatientSearchScreen onSelectPatient={setSelectedPatientId} />
         ) : activeRoute?.id === 'audit-logs' ? (
           <AuditLogsScreen role={role ?? 'clinical_ops'} />
+        ) : activeRoute?.id === 'workflow-commands' ? (
+          <WorkflowCommandsScreen />
         ) : activeRoute ? (
           <section className="panel">
             <div>
