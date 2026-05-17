@@ -4,6 +4,7 @@ import { ProtectedRoute } from './auth/ProtectedRoute';
 import { SignInPage } from './auth/SignInPage';
 import { ADMIN_ROLES, AdminRole, getVisibleRoutes, routes } from './routes';
 import { PatientSearchScreen } from './screens/PatientSearchScreen';
+import { PatientDetailScreen } from './screens/PatientDetailScreen';
 
 const roleLabels: Record<AdminRole, string> = {
   support_agent: 'Support Agent',
@@ -15,7 +16,13 @@ function AdminShell() {
   const { user, role, signOutUser } = useAuth();
   const visibleRoutes = useMemo(() => getVisibleRoutes(role ?? ADMIN_ROLES[0]), [role]);
   const [activeRouteId, setActiveRouteId] = useState(visibleRoutes[0]?.id ?? 'patient-search');
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const activeRoute = routes.find(r => r.id === activeRouteId) ?? visibleRoutes[0];
+
+  function handleNavChange(routeId: string) {
+    setActiveRouteId(routeId);
+    setSelectedPatientId(null);
+  }
 
   return (
     <main className="admin-shell">
@@ -30,7 +37,7 @@ function AdminShell() {
             <button
               className={route.id === activeRoute?.id ? 'nav-item active' : 'nav-item'}
               key={route.id}
-              onClick={() => setActiveRouteId(route.id)}
+              onClick={() => handleNavChange(route.id)}
               type="button"
             >
               <span>{route.label}</span>
@@ -57,8 +64,10 @@ function AdminShell() {
           </div>
         </header>
 
-        {activeRoute?.id === 'patient-search' ? (
-          <PatientSearchScreen />
+        {activeRoute?.id === 'patient-search' && selectedPatientId ? (
+          <PatientDetailScreen patientId={selectedPatientId} onBack={() => setSelectedPatientId(null)} />
+        ) : activeRoute?.id === 'patient-search' ? (
+          <PatientSearchScreen onSelectPatient={setSelectedPatientId} />
         ) : activeRoute ? (
           <section className="panel">
             <div>

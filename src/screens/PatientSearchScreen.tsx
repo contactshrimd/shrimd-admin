@@ -21,9 +21,15 @@ function SkeletonRows() {
   );
 }
 
-function PatientRow({ patient }: { patient: AdminPatientSummary }) {
+function PatientRow({
+  patient,
+  onSelect,
+}: {
+  patient: AdminPatientSummary;
+  onSelect: (id: string) => void;
+}) {
   return (
-    <tr>
+    <tr className="row-clickable" onClick={() => onSelect(patient.patientId)}>
       <td>{patient.displayName ?? <span className="unavailable">—</span>}</td>
       <td><code className="patient-id">{patient.patientId}</code></td>
       <td>{patient.state ?? <span className="unavailable">—</span>}</td>
@@ -34,7 +40,7 @@ function PatientRow({ patient }: { patient: AdminPatientSummary }) {
   );
 }
 
-export function PatientSearchScreen() {
+export function PatientSearchScreen({ onSelectPatient }: { onSelectPatient: (id: string) => void }) {
   const [input, setInput] = useState('');
   const [query, setQuery] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,7 +101,7 @@ export function PatientSearchScreen() {
               {isFetching ? (
                 <SkeletonRows />
               ) : (
-                patients.map(p => <PatientRow key={p.patientId} patient={p} />)
+                patients.map(p => <PatientRow key={p.patientId} patient={p} onSelect={onSelectPatient} />)
               )}
             </tbody>
           </table>
