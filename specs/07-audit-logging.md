@@ -8,6 +8,8 @@ Log every admin action:
 - patientId
 - action
 - timestamp
+- result
+- correlationId
 
 ---
 
@@ -16,6 +18,8 @@ Log every admin action:
 - "Viewed patient record"
 - "Triggered refill review"
 - "Resent notification"
+- "Listed audit logs"
+- "Viewed workflow commands"
 
 ---
 
@@ -23,3 +27,5 @@ Log every admin action:
 
 - Logs must be immutable
 - Logs must be queryable
+- UI actions must rely on backend audit logging; the admin portal must not write audit records directly
+- Audit log list/export must be role-restricted through backend APIs
