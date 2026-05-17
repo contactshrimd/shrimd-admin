@@ -177,6 +177,132 @@ nav {
   overflow-wrap: anywhere;
 }
 
+/* Sign-in page */
+.sign-in-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: #f6f8f4;
+}
+
+.sign-in-card {
+  display: grid;
+  gap: 24px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #dce4d8;
+  border-radius: 12px;
+  padding: 36px 32px;
+  background: #ffffff;
+}
+
+.sign-in-header {
+  text-align: center;
+}
+
+.sign-in-form {
+  display: grid;
+  gap: 16px;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid #cbd8cf;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  color: #17211b;
+  font: inherit;
+}
+
+.field input:focus {
+  border-color: #3b7c55;
+  outline: 2px solid #3b7c5533;
+}
+
+.sign-in-button {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  background: #2e6646;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.sign-in-button:hover:not(:disabled) {
+  background: #255438;
+}
+
+.sign-in-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  margin: 0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+.error-banner {
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Auth loading */
+.auth-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #557063;
+}
+
+/* Topbar right section */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-email {
+  color: #557063;
+  font-size: 0.85rem;
+}
+
+.sign-out-button {
+  border: 1px solid #cbd8cf;
+  border-radius: 6px;
+  padding: 6px 14px;
+  background: #ffffff;
+  color: #2a372f;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.sign-out-button:hover {
+  background: #f0f4f1;
+  border-color: #b0bfb5;
+}
+
 @media (max-width: 760px) {
   .admin-shell {
     grid-template-columns: 1fr;

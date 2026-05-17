@@ -6,8 +6,8 @@
 
 **Purpose**: Firebase config and environment wiring
 
-- [ ] T001 Add `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` to `src/env.ts`
-- [ ] T002 Create `src/firebase.ts` — initialize Firebase app with env vars and export `auth` (`getAuth` instance)
+- [x] T001 Add `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` to `src/env.ts`
+- [x] T002 Create `src/firebase.ts` — initialize Firebase app with env vars and export `auth` (`getAuth` instance)
 
 ---
 
@@ -17,10 +17,10 @@
 
 **⚠️ CRITICAL**: No screen implementation can begin until this phase is complete
 
-- [ ] T003 Create `src/auth/AuthContext.tsx` — define `AuthContext` with shape `{ user, role, loading }` and `AuthProvider` that subscribes to `onIdTokenChanged`, reads `admin_role` custom claim, and calls `signOut` + sets access-denied error if claim is absent or unrecognized
-- [ ] T004 Create `src/auth/useAuth.ts` — hook that reads `AuthContext` and throws if used outside `AuthProvider`
-- [ ] T005 Create `src/auth/ProtectedRoute.tsx` — renders a loading spinner while `loading: true`; redirects to `/sign-in` (with `replace`) when `user` is `null`; renders `children` when authenticated
-- [ ] T006 Update `src/main.tsx` — wrap `<App>` with `<AuthProvider>` (inside `QueryClientProvider`)
+- [x] T003 Create `src/auth/AuthContext.tsx` — define `AuthContext` with shape `{ user, role, loading }` and `AuthProvider` that subscribes to `onIdTokenChanged`, reads `admin_role` custom claim, and calls `signOut` + sets access-denied error if claim is absent or unrecognized
+- [x] T004 Create `src/auth/useAuth.ts` — hook that reads `AuthContext` and throws if used outside `AuthProvider`
+- [x] T005 Create `src/auth/ProtectedRoute.tsx` — renders a loading spinner while `loading: true`; redirects to `/sign-in` (with `replace`) when `user` is `null`; renders `children` when authenticated
+- [x] T006 Update `src/main.tsx` — wrap `<App>` with `<AuthProvider>` (inside `QueryClientProvider`)
 
 **Checkpoint**: Auth context is live — sign-in screen and app shell update can proceed
 
@@ -32,9 +32,9 @@
 
 **Independent Test**: Open `/sign-in` → enter `super@shrimd.com` / wrong password → see "Incorrect email or password." → enter correct credentials → land on Patient Search with role-appropriate nav.
 
-- [ ] T007 [US1] Create `src/auth/SignInPage.tsx` — controlled form with `email` + `password` fields, submit calls `signInWithEmailAndPassword`, maps Firebase error codes to user-safe messages (see `research.md` error table), disables submit while in-flight
-- [ ] T008 [US1] Add sign-in route to `src/App.tsx` — replace the single-page shell with a minimal client-side router: `/sign-in` renders `<SignInPage>`, `/` and all other paths render the existing admin shell wrapped in `<ProtectedRoute>`
-- [ ] T009 [US1] Update `src/App.tsx` — remove the role picker `<select>`; read `role` from `useAuth()` and pass to `getVisibleRoutes()`; show the user's email in the topbar header
+- [x] T007 [US1] Create `src/auth/SignInPage.tsx` — controlled form with `email` + `password` fields, submit calls `signInWithEmailAndPassword`, maps Firebase error codes to user-safe messages (see `research.md` error table), disables submit while in-flight
+- [x] T008 [US1] Add sign-in route to `src/App.tsx` — replace the single-page shell with a minimal client-side router: `/sign-in` renders `<SignInPage>`, `/` and all other paths render the existing admin shell wrapped in `<ProtectedRoute>`
+- [x] T009 [US1] Update `src/App.tsx` — remove the role picker `<select>`; read `role` from `useAuth()` and pass to `getVisibleRoutes()`; show the user's email in the topbar header
 
 ---
 
@@ -44,7 +44,7 @@
 
 **Independent Test**: Sign in → hard-refresh (`Ctrl+R`) → page loads directly into the portal without the sign-in screen appearing.
 
-- [ ] T010 [US2] Verify `AuthProvider` loading gate — confirm the `loading: true` state prevents any redirect before `onIdTokenChanged` fires; fix if the ProtectedRoute redirects prematurely on page load (no code change needed if T003 is correct — add a brief manual test step)
+- [x] T010 [US2] Verify `AuthProvider` loading gate — confirm the `loading: true` state prevents any redirect before `onIdTokenChanged` fires; fix if the ProtectedRoute redirects prematurely on page load (no code change needed if T003 is correct — add a brief manual test step)
 
 *Note*: Firebase's default `browserLocalPersistence` handles session survival across refreshes automatically. This phase is primarily a validation checkpoint.
 
@@ -56,17 +56,17 @@
 
 **Independent Test**: Sign in → click Sign out → at sign-in screen → press browser back button → still at sign-in screen.
 
-- [ ] T011 [US3] Add a "Sign out" button to the topbar in `src/App.tsx` — calls `signOut(auth)` from the Firebase SDK; the `onIdTokenChanged` listener in `AuthProvider` fires and the `ProtectedRoute` redirects to `/sign-in`
-- [ ] T012 [US3] Add sign-out styles to `src/styles.css` — button should be visually distinct (top-right of topbar)
+- [x] T011 [US3] Add a "Sign out" button to the topbar in `src/App.tsx` — calls `signOut(auth)` from the Firebase SDK; the `onIdTokenChanged` listener in `AuthProvider` fires and the `ProtectedRoute` redirects to `/sign-in`
+- [x] T012 [US3] Add sign-out styles to `src/styles.css` — button should be visually distinct (top-right of topbar)
 
 ---
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T013 Add `.env.example` to repo root with all `VITE_FIREBASE_*` keys set to `REPLACE_ME` (no real values)
-- [ ] T014 Update `src/styles.css` — add sign-in page styles (centered card, form layout, error message styling)
-- [ ] T015 Run `npm run type-check` and fix any TypeScript errors
-- [ ] T016 Run `npm run build` and confirm the production build succeeds
+- [x] T013 Add `.env.example` to repo root with all `VITE_FIREBASE_*` keys set to `REPLACE_ME` (no real values)
+- [x] T014 Update `src/styles.css` — add sign-in page styles (centered card, form layout, error message styling)
+- [x] T015 Run `npm run type-check` and fix any TypeScript errors
+- [x] T016 Run `npm run build` and confirm the production build succeeds
 
 ---
 
