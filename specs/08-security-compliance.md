@@ -13,6 +13,7 @@
 - No PHI in local storage
 - No PHI in analytics tools
 - No direct DB access
+- No audit exports in browser local storage
 
 ---
 
@@ -27,3 +28,4 @@
 
 - Mask sensitive data when possible
 - Avoid exposing full records unnecessarily
+- Treat missing optional API fields as role-scoped unavailable data

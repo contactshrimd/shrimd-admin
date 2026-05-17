@@ -35,3 +35,4 @@ These routes are product/spec targets, but the admin UI must not call them until
 - Firebase Auth required
 - Role validated via backend
 - All requests must include a Firebase ID token bearer header
+- Frontend API client conventions are defined in `specs/09-api-client-contract.md`
