@@ -5,6 +5,7 @@ import { SignInPage } from './auth/SignInPage';
 import { ADMIN_ROLES, AdminRole, getVisibleRoutes, routes } from './routes';
 import { PatientSearchScreen } from './screens/PatientSearchScreen';
 import { PatientDetailScreen } from './screens/PatientDetailScreen';
+import { AuditLogsScreen } from './screens/AuditLogsScreen';
 
 const roleLabels: Record<AdminRole, string> = {
   support_agent: 'Support Agent',
@@ -68,6 +69,8 @@ function AdminShell() {
           <PatientDetailScreen patientId={selectedPatientId} onBack={() => setSelectedPatientId(null)} />
         ) : activeRoute?.id === 'patient-search' ? (
           <PatientSearchScreen onSelectPatient={setSelectedPatientId} />
+        ) : activeRoute?.id === 'audit-logs' ? (
+          <AuditLogsScreen role={role ?? 'clinical_ops'} />
         ) : activeRoute ? (
           <section className="panel">
             <div>
