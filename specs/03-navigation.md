@@ -24,6 +24,6 @@ Operations users can also navigate to Audit Logs and Workflow Commands when thei
 
 Routes must be restricted by role.
 
-- Audit Logs: `admin`, `clinical_ops`; export is `admin` only
-- Workflow Commands: `admin`, `clinical_ops`
-- Support agents see patient support routes only
+Use `specs/10-rbac-route-matrix.md` for route visibility.
+
+The UI must hide routes unavailable to the current role and still render an access-denied state if backend returns `403`.

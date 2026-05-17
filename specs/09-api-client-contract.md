@@ -32,6 +32,8 @@ If the backend returns `401`, the client should refresh Firebase auth state or r
 
 If the backend returns `403`, the client should show an access-denied state and must not retry with alternate role assumptions.
 
+Route visibility by role is defined in `specs/10-rbac-route-matrix.md`.
+
 ---
 
 ## Response Envelope

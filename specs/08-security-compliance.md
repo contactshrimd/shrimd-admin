@@ -21,6 +21,7 @@
 
 - Firebase Auth + custom claims
 - Backend validation required
+- UI route hiding must not be treated as a security boundary
 
 ---
 

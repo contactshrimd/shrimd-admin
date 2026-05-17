@@ -31,3 +31,5 @@
 - Use least privilege principle
 - Role enforced via Firebase custom claims
 - Backend validates all permissions
+- Route visibility is centralized in `specs/10-rbac-route-matrix.md`
+- UI route hiding is an ergonomics layer only; backend RBAC is authoritative
