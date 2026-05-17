@@ -446,6 +446,81 @@ nav {
   100% { background-position: -200% 0; }
 }
 
+/* Audit logs */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.export-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.export-button {
+  border: 1px solid #cbd8cf;
+  border-radius: 6px;
+  padding: 9px 18px;
+  background: #ffffff;
+  color: #2a372f;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.export-button:hover:not(:disabled) {
+  background: #f0f4f1;
+}
+
+.export-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.audit-table th,
+.audit-table td {
+  white-space: nowrap;
+}
+
+.ts-cell {
+  font-size: 0.8rem;
+  color: #557063;
+}
+
+.mono-cell {
+  font-family: ui-monospace, monospace;
+  font-size: 0.78rem;
+  color: #557063;
+}
+
+.corr-id {
+  max-width: 120px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+.meta-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.meta-pill {
+  border-radius: 4px;
+  padding: 2px 7px;
+  background: #e5ece7;
+  color: #2a4535;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
 /* Row clickable */
 .row-clickable {
   cursor: pointer;
