@@ -22,7 +22,7 @@ Future backend endpoint: `GET /admin/refills`
 
 ## Actions
 
-- Trigger manual review
+- Trigger manual review (deferred until backend route exists)
 
 ---
 
@@ -30,3 +30,5 @@ Future backend endpoint: `GET /admin/refills`
 
 - No direct approval from UI unless allowed
 - Must not call this route until it exists in the backend OpenAPI contract
+- Navigation should be hidden or disabled until the backend route exists
+- See `specs/11-deferred-surfaces.md`

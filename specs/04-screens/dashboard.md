@@ -26,3 +26,5 @@ Future backend endpoint: `GET /admin/dashboard`
 - Read-only
 - No PHI exposed
 - Must not call this route until it exists in the backend OpenAPI contract
+- Admin and clinical ops users may see a deferred metrics state
+- Support agents should not see dashboard metrics until role-scoped backend data is defined

@@ -28,6 +28,8 @@ These routes are product/spec targets, but the admin UI must not call them until
 - `GET /admin/subscriptions`
 - `POST /admin/actions/trigger-refill-review`
 
+Deferred surface behavior is defined in `specs/11-deferred-surfaces.md`.
+
 ---
 
 ## Auth

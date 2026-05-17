@@ -35,3 +35,5 @@ GET /admin/patients/{patientId}
 - Display minimum necessary data
 - Mask sensitive fields where needed
 - Mutating actions must call backend admin action endpoints and rely on backend audit logging
+- Trigger refill review must be disabled until `POST /admin/actions/trigger-refill-review` exists in backend OpenAPI
+- Flag issue must be hidden or disabled until a backend action endpoint exists
