@@ -10,4 +10,4 @@
 - [x] T004 Update refill queue spec with deferred behavior
 - [x] T005 Update subscriptions spec with deferred behavior
 - [x] T006 Update patient detail future action behavior
-- [ ] T007 Run Speckit prerequisite check
+- [x] T007 Run Speckit prerequisite check

@@ -26,7 +26,7 @@ GET /admin/patients/{patientId}
 
 - Resend notification
 - Trigger refill review (future backend endpoint)
-- Flag issue
+- Flag issue (future backend endpoint)
 
 ---
 
