@@ -14,7 +14,10 @@ These routes are the current admin routes exposed by `shrimd-backend` and should
 
 - `GET /admin/patients/search`
 - `GET /admin/patients/{patientId}`
-- `POST /admin/action/resend-notification`
+- `GET /admin/audit-logs`
+- `GET /admin/audit-logs/export`
+- `GET /admin/workflow-commands`
+- `POST /admin/actions/resend-notification`
 
 ## Future Backend Endpoints
 
@@ -23,7 +26,7 @@ These routes are product/spec targets, but the admin UI must not call them until
 - `GET /admin/dashboard`
 - `GET /admin/refills`
 - `GET /admin/subscriptions`
-- `POST /admin/action/trigger-refill-review`
+- `POST /admin/actions/trigger-refill-review`
 
 ---
 
