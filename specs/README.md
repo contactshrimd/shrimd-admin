@@ -12,5 +12,6 @@ The admin portal must:
 - Only interact via backend APIs
 - Enforce role-based access control (RBAC)
 - Log all actions for audit purposes
+- Treat `shrimd-backend` OpenAPI/admin routes as the implementation source of truth
 
 This system must comply with HIPAA "minimum necessary access" principles.

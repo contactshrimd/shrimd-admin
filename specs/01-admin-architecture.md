@@ -19,6 +19,7 @@ Admin UI → Backend Admin APIs → Firestore
 Admin Portal:
 - Display system data
 - Trigger safe actions
+- Use only backend routes that exist in the backend OpenAPI contract
 
 Backend:
 - Validate permissions

@@ -17,7 +17,7 @@ Provide system overview
 
 ## Data Source
 
-GET /admin/dashboard
+Future backend endpoint: `GET /admin/dashboard`
 
 ---
 
@@ -25,3 +25,4 @@ GET /admin/dashboard
 
 - Read-only
 - No PHI exposed
+- Must not call this route until it exists in the backend OpenAPI contract

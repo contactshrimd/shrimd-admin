@@ -23,3 +23,4 @@ Log every admin action:
 
 - Logs must be immutable
 - Logs must be queryable
+- UI actions must rely on backend audit logging; the admin portal must not write audit records directly

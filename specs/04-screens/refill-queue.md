@@ -16,7 +16,7 @@ Monitor refill pipeline
 
 ## API
 
-GET /admin/refills
+Future backend endpoint: `GET /admin/refills`
 
 ---
 
@@ -29,3 +29,4 @@ GET /admin/refills
 ## Rules
 
 - No direct approval from UI unless allowed
+- Must not call this route until it exists in the backend OpenAPI contract

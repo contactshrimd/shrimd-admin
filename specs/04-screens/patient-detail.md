@@ -18,14 +18,14 @@ View full patient context
 
 ## API
 
-GET /admin/patient/{id}
+GET /admin/patients/{patientId}
 
 ---
 
 ## Actions
 
 - Resend notification
-- Trigger refill review
+- Trigger refill review (future backend endpoint)
 - Flag issue
 
 ---
@@ -34,3 +34,4 @@ GET /admin/patient/{id}
 
 - Display minimum necessary data
 - Mask sensitive fields where needed
+- Mutating actions must call backend admin action endpoints and rely on backend audit logging

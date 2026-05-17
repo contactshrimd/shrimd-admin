@@ -16,7 +16,7 @@ Find patients quickly
 
 ## API
 
-GET /admin/patient/search?q=
+GET /admin/patients/search?q=
 
 ---
 

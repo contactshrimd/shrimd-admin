@@ -16,10 +16,11 @@ Monitor billing status
 
 ## API
 
-GET /admin/subscriptions
+Future backend endpoint: `GET /admin/subscriptions`
 
 ---
 
 ## Actions
 
 - Retry payment (optional future)
+- Must not call this route until it exists in the backend OpenAPI contract
