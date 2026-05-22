@@ -39,6 +39,8 @@ VITE_FIREBASE_API_KEY=fake-api-key
 VITE_FIREBASE_AUTH_DOMAIN=demo-shrimd.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=demo-shrimd
 VITE_FIREBASE_APP_ID=1:000000000000:web:demo00000000000
+VITE_FIREBASE_EMULATOR=true
+VITE_FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
 ```
 
 ```bash
@@ -88,6 +90,8 @@ Copy `.env.example` to `.env.local` and fill in values. `.env.local` is gitignor
 | `VITE_FIREBASE_AUTH_DOMAIN` | Yes | Firebase Auth domain e.g. `shrimd-dev.firebaseapp.com`. Use `demo-shrimd.firebaseapp.com` for emulator. |
 | `VITE_FIREBASE_PROJECT_ID` | Yes | Firebase project ID e.g. `shrimd-dev`. Use `demo-shrimd` for emulator. |
 | `VITE_FIREBASE_APP_ID` | Yes | Firebase app ID from Firebase Console. Any string works with emulator. |
+| `VITE_FIREBASE_EMULATOR` | No | `true` = redirect Auth SDK to local emulator on port 9099. Default: `false`. |
+| `VITE_FIREBASE_AUTH_EMULATOR_HOST` | No | Auth emulator host. Default: `127.0.0.1:9099`. |
 
 ## Access
 

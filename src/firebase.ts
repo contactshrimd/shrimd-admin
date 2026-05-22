@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { env } from './env';
 
 const app = initializeApp({
@@ -10,3 +10,7 @@ const app = initializeApp({
 });
 
 export const auth = getAuth(app);
+
+if (env.FIREBASE_EMULATOR) {
+  connectAuthEmulator(auth, `http://${env.FIREBASE_AUTH_EMULATOR_HOST}`, { disableWarnings: true });
+}
