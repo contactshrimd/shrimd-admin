@@ -76,6 +76,15 @@ export const routes: AdminRoute[] = [
     summary: 'Subscription monitoring is deferred.',
     detail: 'Payment retry must not render as an active action until a backend route exists.',
   },
+  {
+    id: 'condition-flags',
+    label: 'Condition Flags',
+    backendRoute: 'PUT /config/conditions',
+    status: 'live',
+    allowedRoles: ['admin', 'clinical_ops'],
+    summary: 'Control which conditions are visible in the patient app.',
+    detail: 'Toggle launch flags per condition. Changes take effect immediately for new patient sessions.',
+  },
 ];
 
 export function getVisibleRoutes(role: AdminRole) {
