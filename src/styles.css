@@ -616,6 +616,145 @@ nav {
   cursor: pointer;
 }
 
+/* Form builder */
+.form-builder-screen {
+  max-width: 1400px;
+}
+
+.form-builder-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-builder-condition {
+  min-width: 220px;
+}
+
+.form-builder-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+}
+
+.form-builder-toolbar-actions,
+.form-builder-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.form-builder-toolbar-actions {
+  margin-left: auto;
+}
+
+.form-builder-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+.form-builder-main {
+  display: grid;
+  gap: 16px;
+}
+
+.form-builder-question {
+  display: grid;
+  gap: 14px;
+  border: 1px solid #dce4d8;
+  border-radius: 8px;
+  padding: 18px;
+  background: #ffffff;
+}
+
+.form-builder-question-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.form-builder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.form-builder-wide {
+  grid-column: 1 / -1;
+}
+
+.form-builder-checkbox {
+  display: flex;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  min-height: 38px;
+}
+
+.form-builder-checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+.form-builder-subpanel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #edf2ee;
+  border-radius: 8px;
+  padding: 14px;
+  background: #f8faf7;
+}
+
+.form-builder-option-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 180px) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.form-builder-side {
+  display: grid;
+  gap: 16px;
+}
+
+.form-builder-panel {
+  max-width: none;
+  gap: 12px;
+}
+
+.form-builder-version-list {
+  display: grid;
+  gap: 10px;
+}
+
+.form-builder-version-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  border-bottom: 1px solid #edf2ee;
+  padding-bottom: 10px;
+  color: #52645a;
+  font-size: 0.82rem;
+}
+
+.form-builder-json {
+  max-height: 440px;
+  overflow: auto;
+  margin: 0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #17211b;
+  color: #e5ece7;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
 /* Patient detail screen */
 .back-button {
   align-self: flex-start;

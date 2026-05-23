@@ -9,6 +9,7 @@ import { AuditLogsScreen } from './screens/AuditLogsScreen';
 import { WorkflowCommandsScreen } from './screens/WorkflowCommandsScreen';
 import { ConditionFlagsScreen } from './screens/ConditionFlagsScreen';
 import { ConditionCatalogScreen } from './screens/ConditionCatalogScreen';
+import { FormBuilderScreen } from './screens/FormBuilderScreen';
 
 const roleLabels: Record<AdminRole, string> = {
   support_agent: 'Support Agent',
@@ -78,6 +79,8 @@ function AdminShell() {
           <WorkflowCommandsScreen />
         ) : activeRoute?.id === 'condition-catalog' ? (
           <ConditionCatalogScreen />
+        ) : activeRoute?.id === 'form-builder' ? (
+          <FormBuilderScreen />
         ) : activeRoute?.id === 'condition-flags' ? (
           <ConditionFlagsScreen />
         ) : activeRoute ? (

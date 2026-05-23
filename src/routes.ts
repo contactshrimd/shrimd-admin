@@ -94,6 +94,15 @@ export const routes: AdminRoute[] = [
     summary: 'Configure condition names, plan options, bullets, Stripe prices, and discounts.',
     detail: 'Changes take effect for patients within 5 minutes. Stripe Prices and Coupons must be created in the Stripe Dashboard before linking here.',
   },
+  {
+    id: 'form-builder',
+    label: 'Form Builder',
+    backendRoute: 'GET/PUT/POST /admin/forms',
+    status: 'live',
+    allowedRoles: ['admin', 'clinical_ops'],
+    summary: 'Manage dynamic intake form drafts and published versions.',
+    detail: 'Clinical ops can inspect forms and versions. Admins can save drafts and publish through backend validation.',
+  },
 ];
 
 export function getVisibleRoutes(role: AdminRole) {
