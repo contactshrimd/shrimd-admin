@@ -13,6 +13,7 @@ export type AdminPatientDetail = AdminPatientSummary & {
   refillStatus?: string;
   prescriptionStatus?: string;
   fulfillmentStatus?: string;
+  currentIntakeId?: string;
 };
 
 export type AuditLogSummary = {

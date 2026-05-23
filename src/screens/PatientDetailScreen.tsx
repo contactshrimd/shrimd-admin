@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { usePatientDetail } from '../api/hooks/usePatientDetail';
 import { useResendNotification } from '../api/hooks/useResendNotification';
+import { useRescindIntake, useCancelRefund } from '../api/hooks/useIntakeActions';
 
 const NOTIFICATION_TYPES = [
   { value: 'intake_received', label: 'Intake received' },
@@ -78,6 +79,172 @@ function ResendPanel({ patientId }: ResendPanelProps) {
   );
 }
 
+type RescindPanelProps = { patientId: string; intakeId: string };
+
+function RescindPanel({ patientId, intakeId }: RescindPanelProps) {
+  const [reason, setReason] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
+  const { mutate, isPending, isSuccess, isError, error, reset } = useRescindIntake();
+
+  function handleRescind() {
+    mutate(
+      { patientId, intakeId, reason: reason.trim() || undefined },
+      { onSuccess: () => { setConfirmed(false); setReason(''); setTimeout(reset, 5000); } },
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="action-panel">
+        <h3>Rescind intake</h3>
+        <p className="action-success" role="status">Intake recalled. Patient has been notified to resubmit.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="action-panel">
+      <h3>Rescind intake</h3>
+      <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+        Returns this intake to the patient for correction. The patient will be notified and can resubmit without paying again.
+      </p>
+      {!confirmed ? (
+        <button type="button" className="action-button" onClick={() => setConfirmed(true)}>
+          Rescind intake
+        </button>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label className="field">
+            <span>Reason (optional)</span>
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="e.g. Patient requested correction to question 3"
+              maxLength={500}
+              rows={2}
+              disabled={isPending}
+              style={{ resize: 'vertical' }}
+            />
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="action-button" onClick={handleRescind} disabled={isPending}>
+              {isPending ? 'Rescinding…' : 'Confirm rescind'}
+            </button>
+            <button type="button" className="action-button-secondary" onClick={() => setConfirmed(false)} disabled={isPending}>
+              Cancel
+            </button>
+          </div>
+          {isError && (
+            <p className="action-error" role="alert">
+              {(error as { message?: string })?.message ?? 'Failed to rescind. Please try again.'}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type CancelRefundPanelProps = { patientId: string; intakeId: string };
+
+function CancelRefundPanel({ patientId, intakeId }: CancelRefundPanelProps) {
+  const [refundType, setRefundType] = useState<'full' | 'custom'>('full');
+  const [customAmount, setCustomAmount] = useState('');
+  const [reason, setReason] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
+  const { mutate, isPending, isSuccess, data, isError, error, reset } = useCancelRefund();
+
+  function handleCancel() {
+    const cents = refundType === 'full' ? -1 : Math.round(parseFloat(customAmount) * 100);
+    if (refundType === 'custom' && (isNaN(cents) || cents < 0)) return;
+    mutate(
+      { patientId, intakeId, refundAmountCents: refundType === 'full' ? 0 : cents, reason: reason.trim() || undefined },
+      { onSuccess: () => { setConfirmed(false); setTimeout(reset, 6000); } },
+    );
+  }
+
+  if (isSuccess) {
+    const refundCents = data?.refundAmountCents;
+    return (
+      <div className="action-panel">
+        <h3>Cancel &amp; refund</h3>
+        <p className="action-success" role="status">
+          {refundCents
+            ? `Refund of $${(refundCents / 100).toFixed(2)} issued. Subscription cancelled. Patient notified.`
+            : 'Subscription cancelled. Patient notified.'}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="action-panel">
+      <h3>Cancel &amp; refund</h3>
+      <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+        Cancels this intake and the patient's subscription. A refund will be issued to the original payment method.
+      </p>
+      {!confirmed ? (
+        <button type="button" className="action-button action-button-danger" onClick={() => setConfirmed(true)}>
+          Cancel &amp; refund…
+        </button>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <label className="field">
+            <span>Refund amount</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 400 }}>
+                <input type="radio" value="full" checked={refundType === 'full'} onChange={() => setRefundType('full')} />
+                Full refund
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 400 }}>
+                <input type="radio" value="custom" checked={refundType === 'custom'} onChange={() => setRefundType('custom')} />
+                Custom amount
+              </label>
+              {refundType === 'custom' && (
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={customAmount}
+                  onChange={e => setCustomAmount(e.target.value)}
+                  disabled={isPending}
+                  style={{ width: 120, padding: '6px 8px', border: '1px solid #ddd', borderRadius: 6 }}
+                />
+              )}
+            </div>
+          </label>
+          <label className="field">
+            <span>Reason (optional)</span>
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="e.g. Patient changed their mind"
+              maxLength={500}
+              rows={2}
+              disabled={isPending}
+              style={{ resize: 'vertical' }}
+            />
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="action-button action-button-danger" onClick={handleCancel} disabled={isPending}>
+              {isPending ? 'Processing…' : 'Confirm cancel & refund'}
+            </button>
+            <button type="button" className="action-button-secondary" onClick={() => setConfirmed(false)} disabled={isPending}>
+              Back
+            </button>
+          </div>
+          {isError && (
+            <p className="action-error" role="alert">
+              {(error as { message?: string })?.message ?? 'Failed to process. Please try again.'}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 type Props = { patientId: string; onBack: () => void };
 
 export function PatientDetailScreen({ patientId, onBack }: Props) {
@@ -131,19 +298,12 @@ export function PatientDetailScreen({ patientId, onBack }: Props) {
 
           <ResendPanel patientId={patientId} />
 
-          <div className="deferred-actions">
-            <h3>Other actions</h3>
-            <div className="deferred-action-list">
-              <div className="deferred-action">
-                <span>Trigger refill review</span>
-                <span className="badge badge-unavailable">Coming soon</span>
-              </div>
-              <div className="deferred-action">
-                <span>Flag issue</span>
-                <span className="badge badge-unavailable">Coming soon</span>
-              </div>
-            </div>
-          </div>
+          {data.lifecycleState === 'review_pending' && data.currentIntakeId && (
+            <>
+              <RescindPanel patientId={patientId} intakeId={data.currentIntakeId} />
+              <CancelRefundPanel patientId={patientId} intakeId={data.currentIntakeId} />
+            </>
+          )}
         </>
       )}
     </div>

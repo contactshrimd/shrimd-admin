@@ -76,15 +76,11 @@ export function PatientSearchScreen({ onSelectPatient }: { onSelectPatient: (id:
         </div>
       )}
 
-      {!query && !isError && (
-        <div className="screen-empty">Enter a name, email, or patient ID to search.</div>
+      {!isFetching && !isError && patients.length === 0 && (
+        <div className="screen-empty">{query ? `No patients found for "${query}".` : 'No patients found.'}</div>
       )}
 
-      {query && !isFetching && !isError && patients.length === 0 && (
-        <div className="screen-empty">No patients found for "{query}".</div>
-      )}
-
-      {(isFetching || patients.length > 0) && (
+      {(isFetching || (!isError && patients.length > 0)) && (
         <div className="table-wrapper">
           <table className="data-table">
             <thead>

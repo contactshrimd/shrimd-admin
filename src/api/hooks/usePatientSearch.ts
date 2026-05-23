@@ -11,7 +11,7 @@ export function usePatientSearch(query: string) {
       api.request<{ patients: AdminPatientSummary[] }>(
         `/admin/patients/search?q=${encodeURIComponent(query)}`,
       ),
-    enabled: query.trim().length > 0,
+    enabled: true,
     staleTime: 30_000,
     gcTime: 60_000,
   });
