@@ -43,3 +43,88 @@ export type WorkflowCommandSummary = {
   updatedAt?: string;
   payloadKeys: string[];
 };
+
+export type QuestionType =
+  | 'boolean'
+  | 'text'
+  | 'single_select'
+  | 'multi_select'
+  | 'boolean_with_text';
+
+export type AnswerOption = {
+  label: string;
+  value: string;
+};
+
+export type VisibilityRule = {
+  sourceQuestionId: string;
+  operator: 'is' | 'is_not' | 'contains';
+  value: string;
+};
+
+export type ContraIndicationConfig = {
+  severity: 'standard' | 'escalation';
+  triggerValue: string;
+  message: string;
+};
+
+export type ClinicalReviewMetadata = {
+  reviewedBy: string;
+  reviewedByName: string;
+  reviewedAt: string;
+};
+
+export type Question = {
+  id: string;
+  type: QuestionType;
+  label: string;
+  hint?: string;
+  required: boolean;
+  options?: AnswerOption[];
+  followUpPrompt?: string;
+  visibilityRules?: VisibilityRule[];
+  visibilityLogic?: 'and' | 'or';
+  contraIndication?: ContraIndicationConfig;
+};
+
+export type FormConfigSummary = {
+  conditionId: string;
+  publishedVersion: number;
+  publishedAt: string | null;
+  publishedByName: string | null;
+  updatedAt: string;
+  updatedByName: string;
+  draftQuestionCount: number;
+  publishedQuestionCount: number;
+};
+
+export type AdminFormConfigView = {
+  conditionId: string;
+  publishedVersion: number;
+  publishedAt: string | null;
+  publishedBy: string | null;
+  publishedByName: string | null;
+  updatedAt: string;
+  updatedBy: string;
+  updatedByName: string;
+  draftQuestions: Question[];
+  publishedQuestions: Question[];
+};
+
+export type FormVersionSummary = {
+  version: number;
+  publishedAt: string;
+  publishedByName: string;
+  questionCount: number;
+};
+
+export type SaveFormDraftInput = {
+  conditionId: string;
+  questions: Question[];
+};
+
+export type PublishFormInput = {
+  conditionId: string;
+  expectedUpdatedAt: string;
+  clinicalReview?: ClinicalReviewMetadata;
+};
