@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       const tokenResult = await user.getIdTokenResult();
-      const claim = tokenResult.claims['admin_role'] as string | undefined;
+      const claim = tokenResult.claims['role'] as string | undefined;
 
       if (!claim || !(ADMIN_ROLES as readonly string[]).includes(claim)) {
         await signOut(auth);
