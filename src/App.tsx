@@ -8,6 +8,7 @@ import { PatientDetailScreen } from './screens/PatientDetailScreen';
 import { AuditLogsScreen } from './screens/AuditLogsScreen';
 import { WorkflowCommandsScreen } from './screens/WorkflowCommandsScreen';
 import { ConditionFlagsScreen } from './screens/ConditionFlagsScreen';
+import { ConditionCatalogScreen } from './screens/ConditionCatalogScreen';
 
 const roleLabels: Record<AdminRole, string> = {
   support_agent: 'Support Agent',
@@ -75,6 +76,8 @@ function AdminShell() {
           <AuditLogsScreen role={role ?? 'clinical_ops'} />
         ) : activeRoute?.id === 'workflow-commands' ? (
           <WorkflowCommandsScreen />
+        ) : activeRoute?.id === 'condition-catalog' ? (
+          <ConditionCatalogScreen />
         ) : activeRoute?.id === 'condition-flags' ? (
           <ConditionFlagsScreen />
         ) : activeRoute ? (

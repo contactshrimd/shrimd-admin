@@ -85,6 +85,15 @@ export const routes: AdminRoute[] = [
     summary: 'Control which conditions are visible in the patient app.',
     detail: 'Toggle launch flags per condition. Changes take effect immediately for new patient sessions.',
   },
+  {
+    id: 'condition-catalog',
+    label: 'Condition Catalog',
+    backendRoute: 'GET /admin/catalog, PUT /admin/catalog/:conditionId',
+    status: 'live',
+    allowedRoles: ['admin', 'clinical_ops'],
+    summary: 'Configure condition names, plan options, bullets, Stripe prices, and discounts.',
+    detail: 'Changes take effect for patients within 5 minutes. Stripe Prices and Coupons must be created in the Stripe Dashboard before linking here.',
+  },
 ];
 
 export function getVisibleRoutes(role: AdminRole) {
