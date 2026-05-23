@@ -155,10 +155,12 @@ function CancelRefundPanel({ patientId, intakeId }: CancelRefundPanelProps) {
   const { mutate, isPending, isSuccess, data, isError, error, reset } = useCancelRefund();
 
   function handleCancel() {
-    const cents = refundType === 'full' ? -1 : Math.round(parseFloat(customAmount) * 100);
-    if (refundType === 'custom' && (isNaN(cents) || cents < 0)) return;
+    // 0 = full refund (backend omits amount → Stripe refunds full charge)
+    // > 0 = partial refund of that many cents
+    const cents = refundType === 'full' ? 0 : Math.round(parseFloat(customAmount) * 100);
+    if (refundType === 'custom' && (isNaN(cents) || cents <= 0)) return;
     mutate(
-      { patientId, intakeId, refundAmountCents: refundType === 'full' ? 0 : cents, reason: reason.trim() || undefined },
+      { patientId, intakeId, refundAmountCents: cents, reason: reason.trim() || undefined },
       { onSuccess: () => { setConfirmed(false); setTimeout(reset, 6000); } },
     );
   }
