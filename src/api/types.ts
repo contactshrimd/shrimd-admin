@@ -1,6 +1,7 @@
 export type AdminPatientSummary = {
   patientId: string;
   displayName?: string;
+  email?: string;
   state?: string;
   lifecycleState: string;
   reviewStatus?: string;
@@ -9,7 +10,6 @@ export type AdminPatientSummary = {
 };
 
 export type AdminPatientDetail = AdminPatientSummary & {
-  email?: string;
   refillStatus?: string;
   prescriptionStatus?: string;
   fulfillmentStatus?: string;
