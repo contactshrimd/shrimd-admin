@@ -8,7 +8,7 @@ import {
   usePublishForm,
   useSaveDraft,
 } from '../api/hooks/useFormConfig';
-import type { ClinicalReviewMetadata, Question, QuestionType } from '../api/types';
+import type { ClinicalReviewMetadata, Question, QuestionType, VisibilityRule } from '../api/types';
 
 const KNOWN_CONDITIONS = [
   'testosterone',
@@ -82,6 +82,27 @@ function normalizeQuestion(question: Question): Question {
   return normalized;
 }
 
+function defaultVisibilityRule(sourceQuestion?: Question): VisibilityRule {
+  return {
+    sourceQuestionId: sourceQuestion?.id ?? '',
+    operator: 'is',
+    value: sourceQuestion?.type === 'boolean' || sourceQuestion?.type === 'boolean_with_text'
+      ? 'yes'
+      : sourceQuestion?.options?.[0]?.value ?? '',
+  };
+}
+
+function valueOptionsFor(question?: Question) {
+  if (!question) return [];
+  if (question.type === 'boolean' || question.type === 'boolean_with_text') {
+    return [
+      { label: 'Yes', value: 'yes' },
+      { label: 'No', value: 'no' },
+    ];
+  }
+  return question.options ?? [];
+}
+
 function QuestionEditor({
   question,
   index,
@@ -90,6 +111,7 @@ function QuestionEditor({
   onChange,
   onRemove,
   onMove,
+  priorQuestions,
 }: {
   question: Question;
   index: number;
@@ -98,6 +120,7 @@ function QuestionEditor({
   onChange: (question: Question) => void;
   onRemove: () => void;
   onMove: (direction: -1 | 1) => void;
+  priorQuestions: Question[];
 }) {
   function patch(patchValue: Partial<Question>) {
     onChange(normalizeQuestion({ ...question, ...patchValue }));
@@ -105,6 +128,7 @@ function QuestionEditor({
 
   const supportsOptions = question.type === 'single_select' || question.type === 'multi_select';
   const supportsContra = question.type === 'boolean' || question.type === 'single_select';
+  const visibilityRules = question.visibilityRules ?? [];
 
   return (
     <section className="form-builder-question">
@@ -241,6 +265,119 @@ function QuestionEditor({
           ))}
         </div>
       )}
+
+      <div className="form-builder-subpanel">
+        <div className="form-builder-question-header">
+          <strong>Visibility Rules</strong>
+          <button
+            type="button"
+            className="export-button"
+            disabled={priorQuestions.length === 0 || visibilityRules.length >= 3}
+            onClick={() =>
+              patch({
+                visibilityRules: [...visibilityRules, defaultVisibilityRule(priorQuestions[0])],
+                visibilityLogic: question.visibilityLogic ?? 'and',
+              })
+            }
+          >
+            Add rule
+          </button>
+        </div>
+
+        {priorQuestions.length === 0 ? (
+          <p className="form-builder-help">Visibility rules can reference questions above this one.</p>
+        ) : visibilityRules.length === 0 ? (
+          <p className="form-builder-help">Always visible.</p>
+        ) : (
+          <>
+            <label className="field form-builder-rule-logic">
+              <span>Combine rules</span>
+              <select
+                className="wf-select"
+                value={question.visibilityLogic ?? 'and'}
+                onChange={e => patch({ visibilityLogic: e.target.value as 'and' | 'or' })}
+              >
+                <option value="and">AND</option>
+                <option value="or">OR</option>
+              </select>
+            </label>
+            {visibilityRules.map((rule, ruleIndex) => {
+              const sourceQuestion = priorQuestions.find(candidate => candidate.id === rule.sourceQuestionId);
+              const valueOptions = valueOptionsFor(sourceQuestion);
+              return (
+                <div className="form-builder-rule-row" key={`${question.id}-visibility-${ruleIndex}`}>
+                  <select
+                    className="wf-select"
+                    value={rule.sourceQuestionId}
+                    onChange={e => {
+                      const nextSource = priorQuestions.find(candidate => candidate.id === e.target.value);
+                      const nextRules = [...visibilityRules];
+                      nextRules[ruleIndex] = defaultVisibilityRule(nextSource);
+                      patch({ visibilityRules: nextRules });
+                    }}
+                  >
+                    {priorQuestions.map(source => (
+                      <option key={source.id} value={source.id}>{source.id}</option>
+                    ))}
+                  </select>
+                  <select
+                    className="wf-select"
+                    value={rule.operator}
+                    onChange={e => {
+                      const nextRules = [...visibilityRules];
+                      nextRules[ruleIndex] = { ...rule, operator: e.target.value as VisibilityRule['operator'] };
+                      patch({ visibilityRules: nextRules });
+                    }}
+                  >
+                    <option value="is">is</option>
+                    <option value="is_not">is not</option>
+                    <option value="contains">contains</option>
+                  </select>
+                  {valueOptions.length > 0 ? (
+                    <select
+                      className="wf-select"
+                      value={rule.value}
+                      onChange={e => {
+                        const nextRules = [...visibilityRules];
+                        nextRules[ruleIndex] = { ...rule, value: e.target.value };
+                        patch({ visibilityRules: nextRules });
+                      }}
+                    >
+                      {valueOptions.map(option => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      className="search-input"
+                      value={rule.value}
+                      onChange={e => {
+                        const nextRules = [...visibilityRules];
+                        nextRules[ruleIndex] = { ...rule, value: e.target.value };
+                        patch({ visibilityRules: nextRules });
+                      }}
+                      placeholder="value"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    className="btn-danger-sm"
+                    onClick={() => {
+                      const nextRules = visibilityRules.filter((_, i) => i !== ruleIndex);
+                      patch({
+                        visibilityRules: nextRules.length > 0 ? nextRules : undefined,
+                        visibilityLogic: nextRules.length > 0 ? question.visibilityLogic ?? 'and' : undefined,
+                      });
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              );
+            })}
+          </>
+        )}
+      </div>
 
       {supportsContra && (
         <div className="form-builder-subpanel">
@@ -502,6 +639,7 @@ export function FormBuilderScreen() {
               onChange={next => updateQuestion(index, next)}
               onRemove={() => setDraftQuestions(current => current.filter((_, i) => i !== index))}
               onMove={direction => moveQuestion(index, direction)}
+              priorQuestions={draftQuestions.slice(0, index)}
             />
           ))}
         </div>

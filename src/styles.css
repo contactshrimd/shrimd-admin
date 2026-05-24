@@ -717,6 +717,23 @@ nav {
   align-items: center;
 }
 
+.form-builder-help {
+  margin: 0;
+  color: #63756a;
+  font-size: 0.85rem;
+}
+
+.form-builder-rule-logic {
+  max-width: 180px;
+}
+
+.form-builder-rule-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 120px) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
 .form-builder-side {
   display: grid;
   gap: 16px;
