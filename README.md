@@ -6,6 +6,7 @@ React + Vite admin portal for ShriMD operations. Web-only — no mobile build.
 
 - Node.js 20
 - npm
+- JDK 21 or newer when running Firebase emulators
 
 Install dependencies:
 
@@ -21,10 +22,12 @@ npm install
 ```bash
 cd ../shrimd-backend
 npm install
-npm run emulators
+FORM_CONFIG_MIGRATION_ENABLED=true npm run emulators
 # Functions: http://127.0.0.1:5001/demo-shrimd/us-central1/api
 # Auth:      http://127.0.0.1:9099
 ```
+
+`FORM_CONFIG_MIGRATION_ENABLED=true` is required for the admin Form Builder's "Migrate Hardcoded Forms" action in local emulator mode. Firebase CLI 15+ also requires JDK 21 or newer.
 
 **Terminal 2 — seed demo data:**
 ```bash
