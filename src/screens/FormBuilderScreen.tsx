@@ -103,6 +103,159 @@ function valueOptionsFor(question?: Question) {
   return question.options ?? [];
 }
 
+type PreviewAnswers = Record<string, unknown>;
+
+function previewAnswerValue(value: unknown): string | null {
+  if (typeof value === 'string') return value;
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as { choice?: unknown }).choice === 'yes'
+  ) {
+    return 'yes';
+  }
+  return null;
+}
+
+function previewRuleMatches(question: Question, answers: PreviewAnswers, questions: Question[]) {
+  const rules = question.visibilityRules ?? [];
+  if (rules.length === 0) return true;
+
+  const results = rules.map(rule => {
+    const sourceExists = questions.some(candidate => candidate.id === rule.sourceQuestionId);
+    if (!sourceExists) return true;
+
+    const answer = answers[rule.sourceQuestionId];
+    if (rule.operator === 'contains') {
+      return Array.isArray(answer) && answer.includes(rule.value);
+    }
+
+    const comparable = previewAnswerValue(answer);
+    return rule.operator === 'is' ? comparable === rule.value : comparable !== rule.value;
+  });
+
+  return (question.visibilityLogic ?? 'and') === 'or' ? results.some(Boolean) : results.every(Boolean);
+}
+
+function previewContra(question: Question, value: unknown) {
+  const config = question.contraIndication;
+  if (!config) return null;
+  return previewAnswerValue(value) === config.triggerValue ? config : null;
+}
+
+function FormPreview({ questions }: { questions: Question[] }) {
+  const [answers, setAnswers] = useState<PreviewAnswers>({});
+  const visibleQuestions = questions.filter(question => previewRuleMatches(question, answers, questions));
+  const blocked = visibleQuestions
+    .map(question => ({ question, config: previewContra(question, answers[question.id]) }))
+    .find(result => result.config);
+  const activeBlock = blocked?.config;
+
+  useEffect(() => {
+    const visibleIds = new Set(visibleQuestions.map(question => question.id));
+    setAnswers(current => {
+      const next = Object.fromEntries(Object.entries(current).filter(([id]) => visibleIds.has(id)));
+      return Object.keys(next).length === Object.keys(current).length ? current : next;
+    });
+  }, [visibleQuestions]);
+
+  function setAnswer(question: Question, value: unknown) {
+    setAnswers(current => ({ ...current, [question.id]: value }));
+  }
+
+  return (
+    <section className="panel form-builder-panel">
+      <div className="form-builder-question-header">
+        <h3>Live Preview</h3>
+        <button type="button" className="export-button" onClick={() => setAnswers({})}>
+          Reset
+        </button>
+      </div>
+
+      {questions.length === 0 ? (
+        <p>No draft questions to preview.</p>
+      ) : activeBlock ? (
+        <div className={activeBlock.severity === 'escalation' ? 'form-preview-block escalation' : 'form-preview-block'}>
+          <strong>{activeBlock.severity === 'escalation' ? 'Escalation block' : 'Standard block'}</strong>
+          <p>{activeBlock.message}</p>
+        </div>
+      ) : (
+        <div className="form-preview-list">
+          {visibleQuestions.map(question => (
+            <div className="form-preview-question" key={question.id}>
+              <label className="field">
+                <span>{question.label || question.id}</span>
+                {renderPreviewInput(question, answers[question.id], value => setAnswer(question, value))}
+              </label>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function renderPreviewInput(question: Question, value: unknown, onChange: (value: unknown) => void) {
+  if (question.type === 'boolean' || question.type === 'boolean_with_text') {
+    const choice = previewAnswerValue(value) ?? '';
+    return (
+      <select className="wf-select" value={choice} onChange={e => onChange(e.target.value)}>
+        <option value="">Choose</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    );
+  }
+
+  if (question.type === 'single_select') {
+    return (
+      <select
+        className="wf-select"
+        value={typeof value === 'string' ? value : ''}
+        onChange={e => onChange(e.target.value)}
+      >
+        <option value="">Choose</option>
+        {(question.options ?? []).map(option => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    );
+  }
+
+  if (question.type === 'multi_select') {
+    const selected = Array.isArray(value) ? value.filter(item => typeof item === 'string') : [];
+    return (
+      <div className="form-preview-checkboxes">
+        {(question.options ?? []).map(option => (
+          <label key={option.value} className="form-preview-checkbox">
+            <input
+              type="checkbox"
+              checked={selected.includes(option.value)}
+              onChange={e =>
+                onChange(
+                  e.target.checked
+                    ? [...selected, option.value]
+                    : selected.filter(item => item !== option.value),
+                )
+              }
+            />
+            <span>{option.label}</span>
+          </label>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <input
+      className="search-input"
+      value={typeof value === 'string' ? value : ''}
+      onChange={e => onChange(e.target.value)}
+      placeholder="Answer"
+    />
+  );
+}
+
 function QuestionEditor({
   question,
   index,
@@ -645,6 +798,8 @@ export function FormBuilderScreen() {
         </div>
 
         <aside className="form-builder-side">
+          <FormPreview questions={draftQuestions} />
+
           <section className="panel form-builder-panel">
             <h3>Version History</h3>
             {versions.isLoading ? (

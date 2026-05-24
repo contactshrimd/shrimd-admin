@@ -772,6 +772,57 @@ nav {
   white-space: pre-wrap;
 }
 
+.form-preview-list {
+  display: grid;
+  gap: 12px;
+}
+
+.form-preview-question {
+  border-bottom: 1px solid #edf2ee;
+  padding-bottom: 12px;
+}
+
+.form-preview-question:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.form-preview-checkboxes {
+  display: grid;
+  gap: 8px;
+}
+
+.form-preview-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #39473f;
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.form-preview-checkbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.form-preview-block {
+  border-radius: 8px;
+  padding: 14px;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.form-preview-block.escalation {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.form-preview-block p {
+  margin: 8px 0 0;
+  color: inherit;
+}
+
 /* Patient detail screen */
 .back-button {
   align-self: flex-start;
