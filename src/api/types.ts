@@ -118,6 +118,12 @@ export type FormVersionSummary = {
   questionCount: number;
 };
 
+export type FormVersionDetail = FormVersionSummary & {
+  publishedBy: string;
+  questions: Question[];
+  clinicalReview?: ClinicalReviewMetadata;
+};
+
 export type SaveFormDraftInput = {
   conditionId: string;
   questions: Question[];

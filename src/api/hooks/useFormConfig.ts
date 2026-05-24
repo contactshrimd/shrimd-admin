@@ -3,6 +3,7 @@ import { useAdminApi } from '../useAdminApi';
 import type {
   AdminFormConfigView,
   FormConfigSummary,
+  FormVersionDetail,
   FormVersionSummary,
   MigrateFormsResult,
   PublishFormInput,
@@ -42,6 +43,19 @@ export function useFormVersions(conditionId?: string) {
     enabled: Boolean(conditionId),
     staleTime: 30_000,
     gcTime: 60_000,
+  });
+}
+
+export function useFormVersionDetail(conditionId?: string, version?: number) {
+  const api = useAdminApi();
+
+  return useQuery({
+    queryKey: ['forms', conditionId, 'versions', version],
+    queryFn: () =>
+      api.request<FormVersionDetail>(`/admin/forms/${conditionId}/versions/${version}`),
+    enabled: Boolean(conditionId && version),
+    staleTime: 60_000,
+    gcTime: 120_000,
   });
 }
 

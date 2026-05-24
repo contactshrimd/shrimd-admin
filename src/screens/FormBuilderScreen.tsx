@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiClientError } from '../api/client';
 import {
   useFormConfig,
+  useFormVersionDetail,
   useFormList,
   useFormVersions,
   useMigrateForms,
   usePublishForm,
   useSaveDraft,
 } from '../api/hooks/useFormConfig';
-import type { ClinicalReviewMetadata, Question, QuestionType, VisibilityRule } from '../api/types';
+import type { ClinicalReviewMetadata, FormVersionSummary, Question, QuestionType, VisibilityRule } from '../api/types';
 
 const KNOWN_CONDITIONS = [
   'testosterone',
@@ -253,6 +254,77 @@ function renderPreviewInput(question: Question, value: unknown, onChange: (value
       onChange={e => onChange(e.target.value)}
       placeholder="Answer"
     />
+  );
+}
+
+function VersionHistoryPanel({
+  conditionId,
+  versions,
+  isLoading,
+}: {
+  conditionId: string;
+  versions: FormVersionSummary[];
+  isLoading: boolean;
+}) {
+  const [selectedVersion, setSelectedVersion] = useState<number | undefined>();
+  const detail = useFormVersionDetail(conditionId, selectedVersion);
+
+  useEffect(() => {
+    setSelectedVersion(undefined);
+  }, [conditionId]);
+
+  return (
+    <section className="panel form-builder-panel">
+      <h3>Version History</h3>
+      {isLoading ? (
+        <p>Loading versions...</p>
+      ) : versions.length === 0 ? (
+        <p>No published versions yet.</p>
+      ) : (
+        <div className="form-builder-version-list">
+          {versions.map(version => {
+            const isSelected = selectedVersion === version.version;
+            return (
+              <div key={version.version} className="form-builder-version-card">
+                <button
+                  type="button"
+                  className="form-builder-version-row"
+                  onClick={() => setSelectedVersion(isSelected ? undefined : version.version)}
+                >
+                  <strong>v{version.version}</strong>
+                  <span>{formatDate(version.publishedAt)}</span>
+                  <span>{version.questionCount} questions</span>
+                  <span>{version.publishedByName}</span>
+                </button>
+                {isSelected && (
+                  <div className="form-builder-version-detail">
+                    {detail.isLoading ? (
+                      <p>Loading snapshot...</p>
+                    ) : detail.isError ? (
+                      <p className="screen-error">Version snapshot could not be loaded.</p>
+                    ) : detail.data ? (
+                      <>
+                        <p>
+                          Published by {detail.data.publishedByName} on {formatDate(detail.data.publishedAt)}.
+                        </p>
+                        <ol className="form-builder-version-questions">
+                          {detail.data.questions.map(question => (
+                            <li key={question.id}>
+                              <strong>{question.label || question.id}</strong>
+                              <span>{question.type}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -831,25 +903,11 @@ export function FormBuilderScreen() {
         <aside className="form-builder-side">
           <FormPreview questions={draftQuestions} />
 
-          <section className="panel form-builder-panel">
-            <h3>Version History</h3>
-            {versions.isLoading ? (
-              <p>Loading versions...</p>
-            ) : (versions.data?.versions ?? []).length === 0 ? (
-              <p>No published versions yet.</p>
-            ) : (
-              <div className="form-builder-version-list">
-                {(versions.data?.versions ?? []).map(version => (
-                  <div key={version.version} className="form-builder-version-row">
-                    <strong>v{version.version}</strong>
-                    <span>{formatDate(version.publishedAt)}</span>
-                    <span>{version.questionCount} questions</span>
-                    <span>{version.publishedByName}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          <VersionHistoryPanel
+            conditionId={conditionId}
+            versions={versions.data?.versions ?? []}
+            isLoading={versions.isLoading}
+          />
 
           <section className="panel form-builder-panel">
             <h3>JSON Preview</h3>
