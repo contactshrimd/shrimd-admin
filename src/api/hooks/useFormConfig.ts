@@ -4,6 +4,7 @@ import type {
   AdminFormConfigView,
   FormConfigSummary,
   FormVersionSummary,
+  MigrateFormsResult,
   PublishFormInput,
   SaveFormDraftInput,
 } from '../types';
@@ -75,6 +76,21 @@ export function usePublishForm() {
       qc.invalidateQueries({ queryKey: ['forms'] });
       qc.invalidateQueries({ queryKey: ['forms', data.conditionId, 'versions'] });
       qc.setQueryData(['forms', data.conditionId], data);
+    },
+  });
+}
+
+export function useMigrateForms() {
+  const api = useAdminApi();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      api.request<MigrateFormsResult>('/admin/forms/migrate', {
+        method: 'POST',
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['forms'] });
     },
   });
 }

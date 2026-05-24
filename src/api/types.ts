@@ -128,3 +128,8 @@ export type PublishFormInput = {
   expectedUpdatedAt: string;
   clinicalReview?: ClinicalReviewMetadata;
 };
+
+export type MigrateFormsResult = {
+  seeded: string[];
+  skipped: string[];
+};

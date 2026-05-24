@@ -4,6 +4,7 @@ import {
   useFormConfig,
   useFormList,
   useFormVersions,
+  useMigrateForms,
   usePublishForm,
   useSaveDraft,
 } from '../api/hooks/useFormConfig';
@@ -323,6 +324,7 @@ export function FormBuilderScreen() {
   const formList = useFormList();
   const saveDraft = useSaveDraft();
   const publishForm = usePublishForm();
+  const migrateForms = useMigrateForms();
 
   const conditionIds = useMemo(() => {
     const fromApi = formList.data?.forms.map(form => form.conditionId) ?? [];
@@ -415,7 +417,19 @@ export function FormBuilderScreen() {
     }
   }
 
-  const isBusy = saveDraft.isPending || publishForm.isPending;
+  async function handleMigrate() {
+    setMessage(null);
+    setErrorMessage(null);
+    try {
+      const result = await migrateForms.mutateAsync();
+      setMessage(`Migration complete. Seeded ${result.seeded.length}; skipped ${result.skipped.length}.`);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Migration failed.');
+    }
+  }
+
+  const isBusy = saveDraft.isPending || publishForm.isPending || migrateForms.isPending;
+  const showMigrate = (formList.data?.forms ?? []).every(form => form.publishedVersion === 0);
 
   return (
     <div className="screen form-builder-screen">
@@ -442,6 +456,16 @@ export function FormBuilderScreen() {
           <span className="ts-cell">{formatDate(config?.publishedAt ?? null)}</span>
         </div>
         <div className="form-builder-toolbar-actions">
+          {showMigrate && (
+            <button
+              type="button"
+              className="export-button"
+              disabled={isBusy}
+              onClick={handleMigrate}
+            >
+              Migrate hardcoded forms
+            </button>
+          )}
           <button
             type="button"
             className="export-button"
