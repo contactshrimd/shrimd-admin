@@ -651,6 +651,14 @@ nav {
   margin-left: auto;
 }
 
+.form-builder-error-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
 .form-builder-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;

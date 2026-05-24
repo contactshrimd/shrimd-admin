@@ -625,6 +625,7 @@ export function FormBuilderScreen() {
   const [draftQuestions, setDraftQuestions] = useState<Question[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showReloadAction, setShowReloadAction] = useState(false);
 
   const formConfig = useFormConfig(conditionId);
   const versions = useFormVersions(conditionId);
@@ -643,6 +644,7 @@ export function FormBuilderScreen() {
       setDraftQuestions(config.draftQuestions.length > 0 ? config.draftQuestions : config.publishedQuestions);
       setMessage(null);
       setErrorMessage(null);
+      setShowReloadAction(false);
     } else if (configMissing) {
       setDraftQuestions([]);
     }
@@ -664,6 +666,7 @@ export function FormBuilderScreen() {
   async function handleSave() {
     setMessage(null);
     setErrorMessage(null);
+    setShowReloadAction(false);
     try {
       await saveDraft.mutateAsync({ conditionId, questions: draftQuestions });
       setMessage('Draft saved.');
@@ -680,6 +683,7 @@ export function FormBuilderScreen() {
 
     setMessage(null);
     setErrorMessage(null);
+    setShowReloadAction(false);
     let clinicalReview: ClinicalReviewMetadata | undefined;
 
     if (hasContraChanges(config.publishedQuestions, draftQuestions)) {
@@ -703,6 +707,11 @@ export function FormBuilderScreen() {
       });
       setMessage('Form published.');
     } catch (err) {
+      if (err instanceof ApiClientError && err.code === 'CONCURRENT_EDIT') {
+        setErrorMessage('Another admin modified this form. Reload to see the latest version.');
+        setShowReloadAction(true);
+        return;
+      }
       setErrorMessage(err instanceof Error ? err.message : 'Publish failed.');
     }
   }
@@ -710,6 +719,7 @@ export function FormBuilderScreen() {
   async function handleMigrate() {
     setMessage(null);
     setErrorMessage(null);
+    setShowReloadAction(false);
     try {
       const result = await migrateForms.mutateAsync();
       setMessage(`Migration complete. Seeded ${result.seeded.length}; skipped ${result.skipped.length}.`);
@@ -720,6 +730,17 @@ export function FormBuilderScreen() {
 
   const isBusy = saveDraft.isPending || publishForm.isPending || migrateForms.isPending;
   const showMigrate = (formList.data?.forms ?? []).every(form => form.publishedVersion === 0);
+
+  async function handleReloadForm() {
+    setShowReloadAction(false);
+    setErrorMessage(null);
+    await Promise.all([
+      formConfig.refetch(),
+      versions.refetch(),
+      formList.refetch(),
+    ]);
+    setMessage('Latest form loaded.');
+  }
 
   return (
     <div className="screen form-builder-screen">
@@ -734,6 +755,7 @@ export function FormBuilderScreen() {
               setDraftQuestions([]);
               setMessage(null);
               setErrorMessage(null);
+              setShowReloadAction(false);
             }}
           >
             {conditionIds.map(id => (
@@ -774,7 +796,16 @@ export function FormBuilderScreen() {
       </div>
 
       {message && <div className="badge status-succeeded">{message}</div>}
-      {errorMessage && <div className="screen-error" role="alert">{errorMessage}</div>}
+      {errorMessage && (
+        <div className="screen-error form-builder-error-row" role="alert">
+          <span>{errorMessage}</span>
+          {showReloadAction && (
+            <button type="button" className="export-button" onClick={handleReloadForm}>
+              Reload
+            </button>
+          )}
+        </div>
+      )}
       {formConfig.isLoading && <div className="screen-empty">Loading form config...</div>}
       {configMissing && draftQuestions.length === 0 && (
         <div className="screen-empty">No form exists for this condition yet. Add a question to start a draft.</div>
