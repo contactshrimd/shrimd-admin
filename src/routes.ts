@@ -10,6 +10,7 @@ export type AdminRoute = {
   allowedRoles: AdminRole[];
   summary: string;
   detail: string;
+  group?: 'config';
 };
 
 export const routes: AdminRoute[] = [
@@ -84,6 +85,7 @@ export const routes: AdminRoute[] = [
     allowedRoles: ['admin', 'clinical_ops'],
     summary: 'Control which conditions are visible in the patient app.',
     detail: 'Toggle launch flags per condition. Changes take effect immediately for new patient sessions.',
+    group: 'config',
   },
   {
     id: 'condition-catalog',
@@ -93,15 +95,17 @@ export const routes: AdminRoute[] = [
     allowedRoles: ['admin', 'clinical_ops'],
     summary: 'Configure condition names, plan options, bullets, Stripe prices, and discounts.',
     detail: 'Changes take effect for patients within 5 minutes. Stripe Prices and Coupons must be created in the Stripe Dashboard before linking here.',
+    group: 'config',
   },
   {
     id: 'form-builder',
-    label: 'Form Builder',
+    label: 'Intake Form Builder',
     backendRoute: 'GET/PUT/POST /admin/forms',
     status: 'live',
     allowedRoles: ['admin', 'clinical_ops'],
     summary: 'Manage dynamic intake form drafts and published versions.',
     detail: 'Clinical ops can inspect forms and versions. Admins can save drafts and publish through backend validation.',
+    group: 'config',
   },
 ];
 

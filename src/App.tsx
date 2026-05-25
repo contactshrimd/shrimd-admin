@@ -38,7 +38,7 @@ function AdminShell() {
         </div>
 
         <nav aria-label="Admin sections">
-          {visibleRoutes.map(route => (
+          {visibleRoutes.filter(r => !r.group).map(route => (
             <button
               className={route.id === activeRoute?.id ? 'nav-item active' : 'nav-item'}
               key={route.id}
@@ -49,6 +49,22 @@ function AdminShell() {
               {route.status === 'deferred' ? <small>Deferred</small> : null}
             </button>
           ))}
+          {visibleRoutes.some(r => r.group === 'config') && (
+            <>
+              <p className="nav-group-label">Config / Setup</p>
+              {visibleRoutes.filter(r => r.group === 'config').map(route => (
+                <button
+                  className={route.id === activeRoute?.id ? 'nav-item active' : 'nav-item'}
+                  key={route.id}
+                  onClick={() => handleNavChange(route.id)}
+                  type="button"
+                >
+                  <span>{route.label}</span>
+                  {route.status === 'deferred' ? <small>Deferred</small> : null}
+                </button>
+              ))}
+            </>
+          )}
         </nav>
       </aside>
 
