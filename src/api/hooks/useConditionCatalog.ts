@@ -10,6 +10,8 @@ export type CatalogPlanInput = {
   discountLabel: string | null;
 };
 
+export type SellType = 'front_sell' | 'cross_sell' | 'both';
+
 export type CatalogConditionInput = {
   displayName: string;
   shortDescription: string;
@@ -18,6 +20,7 @@ export type CatalogConditionInput = {
   iconIdentifier: string;
   sortOrder: number;
   plans: CatalogPlanInput[];
+  sellType: SellType;
 };
 
 export type CatalogPlanView = {
@@ -49,6 +52,7 @@ export type AdminCatalogCondition = {
   iconIdentifier: string;
   sortOrder: number;
   plans: CatalogPlanView[];
+  sellType: SellType;
   lastUpdatedBy: string;
   lastUpdatedAt: string;
   stripeWarnings: StripeWarning[];
@@ -69,6 +73,18 @@ export function useUpdateConditionCatalog() {
   return useMutation({
     mutationFn: ({ conditionId, body }: { conditionId: string; body: CatalogConditionInput }) =>
       api.request<AdminCatalogCondition>(`/admin/catalog/${conditionId}`, { method: 'PUT', body }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['adminCatalog'] });
+    },
+  });
+}
+
+export function useCreateConditionCatalog() {
+  const api = useAdminApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ conditionId, body }: { conditionId: string; body: CatalogConditionInput }) =>
+      api.request<AdminCatalogCondition>('/admin/catalog', { method: 'POST', body: { conditionId, ...body } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['adminCatalog'] });
     },

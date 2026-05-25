@@ -10,6 +10,7 @@ import { WorkflowCommandsScreen } from './screens/WorkflowCommandsScreen';
 import { ConditionFlagsScreen } from './screens/ConditionFlagsScreen';
 import { ConditionCatalogScreen } from './screens/ConditionCatalogScreen';
 import { FormBuilderScreen } from './screens/FormBuilderScreen';
+import { CrossSellRulesScreen } from './screens/CrossSellRulesScreen';
 
 const roleLabels: Record<AdminRole, string> = {
   support_agent: 'Support Agent',
@@ -99,6 +100,8 @@ function AdminShell() {
           <FormBuilderScreen />
         ) : activeRoute?.id === 'condition-flags' ? (
           <ConditionFlagsScreen />
+        ) : activeRoute?.id === 'crosssell-rules' ? (
+          <CrossSellRulesScreen />
         ) : activeRoute ? (
           <section className="panel">
             <div>

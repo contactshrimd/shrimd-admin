@@ -2,11 +2,14 @@ import { useState } from 'react';
 import {
   useAdminCatalog,
   useUpdateConditionCatalog,
+  useCreateConditionCatalog,
   type AdminCatalogCondition,
   type CatalogConditionInput,
   type CatalogPlanInput,
+  type SellType,
 } from '../api/hooks/useConditionCatalog';
 import { useStripePrices, useStripeCoupons } from '../api/hooks/useStripeLookup';
+import { useAuth } from '../auth/useAuth';
 
 const VALID_ICONS = [
   { emoji: '💪', label: 'Testosterone' },
@@ -28,17 +31,6 @@ const DEFAULT_PLAN: PlanFormState = {
   discountLabel: '',
 };
 
-const CONDITION_STUBS: AdminCatalogCondition[] = [
-  { conditionId: 'testosterone',  displayName: "Testosterone / Men's HRT",  shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '💪', sortOrder: 0, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-  { conditionId: 'womens_hrt',    displayName: "Women's HRT / Menopause",   shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '🌸', sortOrder: 1, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-  { conditionId: 'mental_health', displayName: 'Mental Health',             shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '🧠', sortOrder: 2, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-  { conditionId: 'migraine',      displayName: 'Migraine',                  shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '⚡', sortOrder: 3, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-  { conditionId: 'fertility',     displayName: 'Fertility',                 shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '🤰', sortOrder: 4, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-  { conditionId: 'thyroid',       displayName: 'Thyroid / Autoimmune',      shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '🦋', sortOrder: 5, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-  { conditionId: 'sleep',         displayName: 'Sleep',                     shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '😴', sortOrder: 6, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-  { conditionId: 'skin',          displayName: 'Chronic Skin / Derm',       shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '✨', sortOrder: 7, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-  { conditionId: 'adhd',          displayName: 'Non-Stimulant ADHD',        shortDescription: '', whatIsIt: '', whoIsItFor: '', iconIdentifier: '⚡', sortOrder: 8, plans: [], stripeWarnings: [], lastUpdatedBy: '', lastUpdatedAt: '' },
-];
 
 function formatDate(iso: string): string {
   try {
@@ -79,6 +71,18 @@ function planToFormState(plan: CatalogPlanInput | { planId: string; tierName: st
   };
 }
 
+const SELL_TYPE_LABELS: Record<SellType, string> = {
+  front_sell: 'Front-sell',
+  cross_sell: 'Cross-sell',
+  both: 'Both',
+};
+
+const SELL_TYPE_COLORS: Record<SellType, string> = {
+  front_sell: '#065f46',
+  cross_sell: '#1e3a5f',
+  both: '#4c1d95',
+};
+
 type ConditionFormState = {
   displayName: string;
   shortDescription: string;
@@ -87,6 +91,7 @@ type ConditionFormState = {
   iconIdentifier: string;
   sortOrder: number;
   plans: PlanFormState[];
+  sellType: SellType;
 };
 
 function conditionToFormState(c: AdminCatalogCondition): ConditionFormState {
@@ -98,8 +103,20 @@ function conditionToFormState(c: AdminCatalogCondition): ConditionFormState {
     iconIdentifier: c.iconIdentifier,
     sortOrder: c.sortOrder,
     plans: c.plans.length > 0 ? c.plans.map(planToFormState) : [{ ...DEFAULT_PLAN }],
+    sellType: c.sellType ?? 'front_sell',
   };
 }
+
+const DEFAULT_CONDITION_FORM: ConditionFormState = {
+  displayName: '',
+  shortDescription: '',
+  whatIsIt: '',
+  whoIsItFor: '',
+  iconIdentifier: '💪',
+  sortOrder: 10,
+  plans: [{ ...DEFAULT_PLAN }],
+  sellType: 'front_sell',
+};
 
 function ConditionRow({ condition }: { condition: AdminCatalogCondition }) {
   const [expanded, setExpanded] = useState(false);
@@ -187,6 +204,7 @@ function ConditionRow({ condition }: { condition: AdminCatalogCondition }) {
       whoIsItFor: form.whoIsItFor,
       iconIdentifier: form.iconIdentifier,
       sortOrder: form.sortOrder,
+      sellType: form.sellType,
       plans: form.plans.map((p) => ({
         planId: p.planId,
         tierName: p.tierName,
@@ -216,7 +234,18 @@ function ConditionRow({ condition }: { condition: AdminCatalogCondition }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span style={{ fontSize: '1.5rem' }}>{condition.iconIdentifier}</span>
           <div>
-            <p style={{ fontWeight: 600, margin: 0 }}>{condition.displayName}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <p style={{ fontWeight: 600, margin: 0 }}>{condition.displayName}</p>
+              {condition.sellType && (
+                <span style={{
+                  fontSize: '0.65rem', fontWeight: 600, padding: '0.15rem 0.45rem',
+                  borderRadius: '999px', color: '#fff',
+                  background: SELL_TYPE_COLORS[condition.sellType],
+                }}>
+                  {SELL_TYPE_LABELS[condition.sellType]}
+                </span>
+              )}
+            </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
               {condition.lastUpdatedAt
                 ? `${condition.plans.length} plan${condition.plans.length !== 1 ? 's' : ''}`
@@ -317,6 +346,18 @@ function ConditionRow({ condition }: { condition: AdminCatalogCondition }) {
                 value={form.sortOrder}
                 onChange={(e) => setForm((f) => ({ ...f, sortOrder: parseInt(e.target.value, 10) || 0 }))}
               />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Sell Type</label>
+              <select
+                className="form-input"
+                value={form.sellType}
+                onChange={(e) => setForm((f) => ({ ...f, sellType: e.target.value as SellType }))}
+              >
+                <option value="front_sell">Front-sell (primary condition list)</option>
+                <option value="cross_sell">Cross-sell only (never in primary list)</option>
+                <option value="both">Both (primary list + cross-sell target)</option>
+              </select>
             </div>
           </div>
 
@@ -535,27 +576,218 @@ function ConditionRow({ condition }: { condition: AdminCatalogCondition }) {
   );
 }
 
+const CONDITION_ID_RE = /^[a-z0-9_]+$/;
+
 export function ConditionCatalogScreen() {
+  const { role } = useAuth();
   const { data: conditions, isLoading, isError } = useAdminCatalog();
+  const create = useCreateConditionCatalog();
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [newConditionId, setNewConditionId] = useState('');
+  const [newForm, setNewForm] = useState<ConditionFormState>({ ...DEFAULT_CONDITION_FORM, plans: [{ ...DEFAULT_PLAN }] });
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [conditionIdError, setConditionIdError] = useState<string | null>(null);
+
+  const {
+    data: pricesData,
+    isLoading: pricesLoading,
+    isError: pricesError,
+    refetch: refetchPrices,
+  } = useStripePrices();
+  const {
+    data: couponsData,
+    isLoading: couponsLoading,
+    isError: couponsError,
+    refetch: refetchCoupons,
+  } = useStripeCoupons();
+  const prices = pricesData?.prices ?? [];
+  const coupons = couponsData?.coupons ?? [];
+
+  function validateConditionId(id: string): string | null {
+    if (!id) return 'Condition ID is required.';
+    if (!CONDITION_ID_RE.test(id)) return 'Only lowercase letters, digits, and underscores allowed.';
+    if (id.length > 60) return 'Maximum 60 characters.';
+    return null;
+  }
+
+  async function handleCreate() {
+    const idErr = validateConditionId(newConditionId);
+    setConditionIdError(idErr);
+    if (idErr) return;
+    setCreateError(null);
+    const body: CatalogConditionInput = {
+      displayName: newForm.displayName,
+      shortDescription: newForm.shortDescription,
+      whatIsIt: newForm.whatIsIt,
+      whoIsItFor: newForm.whoIsItFor,
+      iconIdentifier: newForm.iconIdentifier,
+      sortOrder: newForm.sortOrder,
+      sellType: newForm.sellType,
+      plans: newForm.plans.map((p) => ({
+        planId: p.planId,
+        tierName: p.tierName,
+        bullets: p.bullets.filter((b) => b.trim().length > 0),
+        stripePriceId: p.stripePriceId,
+        stripeCouponId: p.stripeCouponId || null,
+        discountLabel: p.stripeCouponId ? p.discountLabel : null,
+      })),
+    };
+    try {
+      await create.mutateAsync({ conditionId: newConditionId, body });
+      setShowCreate(false);
+      setNewConditionId('');
+      setNewForm({ ...DEFAULT_CONDITION_FORM, plans: [{ ...DEFAULT_PLAN }] });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Create failed.';
+      if (msg.includes('409') || msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('conflict')) {
+        setCreateError(`Condition ID '${newConditionId}' already exists.`);
+      } else {
+        setCreateError(msg);
+      }
+    }
+  }
 
   if (isLoading) return <p>Loading condition catalog…</p>;
   if (isError || !conditions) return <p className="error-text">Failed to load condition catalog.</p>;
 
-  const merged = CONDITION_STUBS.map(
-    (stub) => conditions.find((c) => c.conditionId === stub.conditionId) ?? stub
-  );
-
   return (
     <div className="panel">
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h3>Condition Catalog</h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-          Configure condition names, plan options, feature bullets, Stripe prices, and discounts.
-          Changes take effect for patients within 5 minutes.
-        </p>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div>
+          <h3>Condition Catalog</h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+            Configure condition names, plan options, feature bullets, Stripe prices, and discounts.
+            Changes take effect for patients within 5 minutes.
+          </p>
+        </div>
+        {role === 'admin' && (
+          <button
+            type="button"
+            className="btn-primary-sm"
+            onClick={() => { setShowCreate((s) => !s); setCreateError(null); setConditionIdError(null); }}
+            style={{ flexShrink: 0, marginLeft: '1rem' }}
+          >
+            {showCreate ? 'Cancel' : '+ New Condition'}
+          </button>
+        )}
       </div>
 
-      {merged.map((condition) => (
+      {showCreate && role === 'admin' && (
+        <div style={{ border: '1px solid var(--border)', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem', background: '#f9fafb' }}>
+          <p style={{ fontWeight: 600, marginBottom: '1rem', marginTop: 0 }}>New Condition</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Condition ID <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(lowercase, alphanumeric + underscores, max 60 chars)</span></label>
+              <input
+                className="form-input"
+                value={newConditionId}
+                onChange={(e) => { setNewConditionId(e.target.value); setConditionIdError(null); }}
+                placeholder="e.g. weight_loss"
+                maxLength={60}
+              />
+              {conditionIdError && <p style={{ color: 'var(--error)', fontSize: '0.8rem', margin: '0.25rem 0 0' }}>{conditionIdError}</p>}
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Sell Type</label>
+              <select className="form-input" value={newForm.sellType} onChange={(e) => setNewForm((f) => ({ ...f, sellType: e.target.value as SellType }))}>
+                <option value="front_sell">Front-sell (primary condition list)</option>
+                <option value="cross_sell">Cross-sell only (never in primary list)</option>
+                <option value="both">Both (primary list + cross-sell target)</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Icon</label>
+              <select className="form-input" value={newForm.iconIdentifier} onChange={(e) => setNewForm((f) => ({ ...f, iconIdentifier: e.target.value }))}>
+                {VALID_ICONS.map((icon) => (
+                  <option key={icon.emoji} value={icon.emoji}>{icon.emoji} {icon.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Display Name</label>
+              <input className="form-input" value={newForm.displayName} onChange={(e) => setNewForm((f) => ({ ...f, displayName: e.target.value }))} maxLength={120} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Short Description</label>
+              <textarea className="form-input" value={newForm.shortDescription} onChange={(e) => setNewForm((f) => ({ ...f, shortDescription: e.target.value }))} maxLength={300} rows={2} style={{ width: '100%', resize: 'vertical' }} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>What is it?</label>
+              <textarea className="form-input" value={newForm.whatIsIt} onChange={(e) => setNewForm((f) => ({ ...f, whatIsIt: e.target.value }))} maxLength={600} rows={3} style={{ width: '100%', resize: 'vertical' }} />
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Who is it for?</label>
+              <textarea className="form-input" value={newForm.whoIsItFor} onChange={(e) => setNewForm((f) => ({ ...f, whoIsItFor: e.target.value }))} maxLength={400} rows={2} style={{ width: '100%', resize: 'vertical' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Sort Order</label>
+              <input className="form-input" type="number" min={0} value={newForm.sortOrder} onChange={(e) => setNewForm((f) => ({ ...f, sortOrder: parseInt(e.target.value, 10) || 0 }))} />
+            </div>
+          </div>
+
+          <div style={{ marginTop: '1rem' }}>
+            <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Plan</p>
+            {newForm.plans.map((plan, planIdx) => (
+              <div key={planIdx} style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '0.875rem', marginBottom: '0.75rem', background: '#fff' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Plan ID</label>
+                    <input className="form-input" value={plan.planId} onChange={(e) => setNewForm((f) => { const plans = [...f.plans]; plans[planIdx] = { ...plans[planIdx], planId: e.target.value }; return { ...f, plans }; })} placeholder="e.g. standard" />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Tier Name</label>
+                    <input className="form-input" value={plan.tierName} onChange={(e) => setNewForm((f) => { const plans = [...f.plans]; plans[planIdx] = { ...plans[planIdx], tierName: e.target.value }; return { ...f, plans }; })} placeholder="e.g. Standard" maxLength={60} />
+                  </div>
+                </div>
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Stripe Price</label>
+                  {pricesError ? (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <select className="form-input" disabled style={{ flex: 1 }}><option>Failed to load — retry</option></select>
+                      <button type="button" className="btn-primary-sm" onClick={() => refetchPrices()}>Retry</button>
+                    </div>
+                  ) : (
+                    <select className="form-input" value={plan.stripePriceId} onChange={(e) => setNewForm((f) => { const plans = [...f.plans]; plans[planIdx] = { ...plans[planIdx], stripePriceId: e.target.value }; return { ...f, plans }; })} disabled={pricesLoading}>
+                      <option value="">{pricesLoading ? 'Loading…' : '— Select a Stripe Price —'}</option>
+                      {prices.map((p) => <option key={p.id} value={p.id}>{p.productName} — {formatPrice(p.amountCents, p.currency, p.interval)}</option>)}
+                    </select>
+                  )}
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Stripe Coupon (optional)</label>
+                  {couponsError ? (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <select className="form-input" disabled style={{ flex: 1 }}><option>Failed to load — retry</option></select>
+                      <button type="button" className="btn-primary-sm" onClick={() => refetchCoupons()}>Retry</button>
+                    </div>
+                  ) : (
+                    <select className="form-input" value={plan.stripeCouponId} onChange={(e) => setNewForm((f) => { const plans = [...f.plans]; plans[planIdx] = { ...plans[planIdx], stripeCouponId: e.target.value, discountLabel: e.target.value ? plans[planIdx].discountLabel : '' }; return { ...f, plans }; })} disabled={couponsLoading}>
+                      <option value="">{couponsLoading ? 'Loading…' : 'No discount'}</option>
+                      {coupons.map((c) => <option key={c.id} value={c.id}>{c.name} — {formatCoupon(c.amountOffCents, c.percentOff)}</option>)}
+                    </select>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {createError && <p style={{ color: 'var(--error)', fontSize: '0.875rem', margin: '0.5rem 0 0' }}>{createError}</p>}
+          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+            <button type="button" className="btn-primary-sm" onClick={handleCreate} disabled={create.isPending} style={{ padding: '0.5rem 1.5rem' }}>
+              {create.isPending ? 'Creating…' : 'Create Condition'}
+            </button>
+            <button type="button" onClick={() => { setShowCreate(false); setCreateError(null); setConditionIdError(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {conditions.length === 0 && (
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No conditions in catalog. Create the first one above.</p>
+      )}
+      {conditions.map((condition) => (
         <ConditionRow key={condition.conditionId} condition={condition} />
       ))}
     </div>

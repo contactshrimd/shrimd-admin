@@ -107,6 +107,16 @@ export const routes: AdminRoute[] = [
     detail: 'Clinical ops can inspect forms and versions. Admins can save drafts and publish through backend validation.',
     group: 'config',
   },
+  {
+    id: 'crosssell-rules',
+    label: 'Cross-Sell Rules',
+    backendRoute: 'GET/POST/PUT/PATCH /admin/crosssell-rules',
+    status: 'live',
+    allowedRoles: ['admin', 'clinical_ops'],
+    summary: 'Configure cross-sell offer rules shown to patients after intake submission.',
+    detail: 'Rules trigger based on condition enrolled or intake form responses. Changes affect new intake submissions only.',
+    group: 'config',
+  },
 ];
 
 export function getVisibleRoutes(role: AdminRole) {
