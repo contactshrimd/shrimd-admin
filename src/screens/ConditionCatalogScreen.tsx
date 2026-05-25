@@ -20,6 +20,8 @@ const VALID_ICONS = [
   { emoji: '🦋', label: 'Thyroid' },
   { emoji: '😴', label: 'Sleep' },
   { emoji: '✨', label: 'Skin' },
+  { emoji: '⚖️', label: 'Weight Loss' },
+  { emoji: '💇', label: 'Hair Loss' },
 ];
 
 const DEFAULT_PLAN: PlanFormState = {
