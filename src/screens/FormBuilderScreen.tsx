@@ -32,6 +32,15 @@ const QUESTION_TYPES: QuestionType[] = [
   'boolean_with_text',
 ];
 
+const ADULT_AGE_VALIDATION = {
+  type: 'number' as const,
+  min: 18,
+  max: 120,
+  blockBelowMin: true,
+  message:
+    "We're unable to offer ShriMD care to patients under 18. Please speak with a parent or guardian and an appropriate pediatric specialist for care options.",
+};
+
 function emptyQuestion(index: number): Question {
   return {
     id: `question_${index + 1}`,
@@ -63,10 +72,12 @@ function hasContraChanges(previous: Question[], next: Question[]): boolean {
 }
 
 function normalizeQuestion(question: Question): Question {
+  const type = question.id === 'age' ? 'text' : question.type;
   const normalized: Question = {
     ...question,
+    type,
     options:
-      question.type === 'single_select' || question.type === 'multi_select'
+      type === 'single_select' || type === 'multi_select'
         ? question.options && question.options.length > 0
           ? question.options
           : [
@@ -74,18 +85,34 @@ function normalizeQuestion(question: Question): Question {
               { label: 'No', value: 'no' },
             ]
         : undefined,
-    followUpPrompt: question.type === 'boolean_with_text' ? question.followUpPrompt ?? '' : undefined,
+    followUpPrompt: type === 'boolean_with_text' ? question.followUpPrompt ?? '' : undefined,
   };
 
-  if (question.type !== 'boolean' && question.type !== 'single_select') {
+  if (type !== 'boolean' && type !== 'single_select') {
     delete normalized.contraIndication;
   }
 
-  if (question.type !== 'text') {
+  if (type !== 'text') {
     delete normalized.validation;
   }
 
+  if (normalized.id === 'age') {
+    normalized.validation = {
+      ...ADULT_AGE_VALIDATION,
+      ...normalized.validation,
+      type: 'number',
+      min: normalized.validation?.min ?? ADULT_AGE_VALIDATION.min,
+      max: normalized.validation?.max ?? ADULT_AGE_VALIDATION.max,
+      blockBelowMin: normalized.validation?.blockBelowMin ?? ADULT_AGE_VALIDATION.blockBelowMin,
+      message: normalized.validation?.message ?? ADULT_AGE_VALIDATION.message,
+    };
+  }
+
   return normalized;
+}
+
+function normalizeDraftQuestions(questions: Question[]): Question[] {
+  return questions.map(normalizeQuestion);
 }
 
 function defaultVisibilityRule(sourceQuestion?: Question): VisibilityRule {
@@ -845,7 +872,9 @@ export function FormBuilderScreen() {
 
   useEffect(() => {
     if (config) {
-      setDraftQuestions(config.draftQuestions.length > 0 ? config.draftQuestions : config.publishedQuestions);
+      setDraftQuestions(normalizeDraftQuestions(
+        config.draftQuestions.length > 0 ? config.draftQuestions : config.publishedQuestions,
+      ));
       setMessage(null);
       setErrorMessage(null);
       setShowReloadAction(false);
@@ -871,8 +900,10 @@ export function FormBuilderScreen() {
     setMessage(null);
     setErrorMessage(null);
     setShowReloadAction(false);
+    const normalizedQuestions = normalizeDraftQuestions(draftQuestions);
+    setDraftQuestions(normalizedQuestions);
     try {
-      await saveDraft.mutateAsync({ conditionId, questions: draftQuestions });
+      await saveDraft.mutateAsync({ conditionId, questions: normalizedQuestions });
       setMessage('Draft saved.');
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Draft save failed.');
@@ -889,8 +920,10 @@ export function FormBuilderScreen() {
     setErrorMessage(null);
     setShowReloadAction(false);
     let clinicalReview: ClinicalReviewMetadata | undefined;
+    const normalizedQuestions = normalizeDraftQuestions(draftQuestions);
+    setDraftQuestions(normalizedQuestions);
 
-    if (hasContraChanges(config.publishedQuestions, draftQuestions)) {
+    if (hasContraChanges(config.publishedQuestions, normalizedQuestions)) {
       const reviewedByName = window.prompt('Clinical reviewer name required for contraindication changes');
       if (!reviewedByName) {
         setErrorMessage('Clinical review is required before publishing contraindication changes.');
@@ -904,9 +937,10 @@ export function FormBuilderScreen() {
     }
 
     try {
+      const savedConfig = await saveDraft.mutateAsync({ conditionId, questions: normalizedQuestions });
       await publishForm.mutateAsync({
         conditionId,
-        expectedUpdatedAt: config.updatedAt,
+        expectedUpdatedAt: savedConfig.updatedAt,
         clinicalReview,
       });
       setMessage('Form published.');
