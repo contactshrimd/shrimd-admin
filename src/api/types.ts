@@ -68,6 +68,14 @@ export type ContraIndicationConfig = {
   message: string;
 };
 
+export type NumberValidationConfig = {
+  type: 'number';
+  min?: number;
+  max?: number;
+  message?: string;
+  blockBelowMin?: boolean;
+};
+
 export type ClinicalReviewMetadata = {
   reviewedBy: string;
   reviewedByName: string;
@@ -85,6 +93,7 @@ export type Question = {
   visibilityRules?: VisibilityRule[];
   visibilityLogic?: 'and' | 'or';
   contraIndication?: ContraIndicationConfig;
+  validation?: NumberValidationConfig;
 };
 
 export type FormConfigSummary = {

@@ -9,6 +9,7 @@ import {
   usePublishForm,
   useSaveDraft,
 } from '../api/hooks/useFormConfig';
+import { useAdminCatalog } from '../api/hooks/useConditionCatalog';
 import type { ClinicalReviewMetadata, FormVersionSummary, Question, QuestionType, VisibilityRule } from '../api/types';
 
 const KNOWN_CONDITIONS = [
@@ -78,6 +79,10 @@ function normalizeQuestion(question: Question): Question {
 
   if (question.type !== 'boolean' && question.type !== 'single_select') {
     delete normalized.contraIndication;
+  }
+
+  if (question.type !== 'text') {
+    delete normalized.validation;
   }
 
   return normalized;
@@ -223,6 +228,20 @@ function renderPreviewInput(question: Question, value: unknown, onChange: (value
     );
   }
 
+  if (question.type === 'text' && question.validation?.type === 'number') {
+    return (
+      <input
+        className="search-input"
+        type="number"
+        min={question.validation.min}
+        max={question.validation.max}
+        value={typeof value === 'string' ? value : ''}
+        onChange={e => onChange(e.target.value)}
+        placeholder="Number"
+      />
+    );
+  }
+
   if (question.type === 'multi_select') {
     const selected = Array.isArray(value) ? value.filter(item => typeof item === 'string') : [];
     return (
@@ -353,6 +372,7 @@ function QuestionEditor({
 
   const supportsOptions = question.type === 'single_select' || question.type === 'multi_select';
   const supportsContra = question.type === 'boolean' || question.type === 'single_select';
+  const supportsNumberValidation = question.type === 'text';
   const visibilityRules = question.visibilityRules ?? [];
 
   return (
@@ -435,6 +455,98 @@ function QuestionEditor({
             placeholder="Tell us more"
           />
         </label>
+      )}
+
+      {supportsNumberValidation && (
+        <div className="form-builder-subpanel">
+          <label className="field form-builder-checkbox">
+            <input
+              type="checkbox"
+              checked={question.validation?.type === 'number'}
+              onChange={e =>
+                patch({
+                  validation: e.target.checked
+                    ? {
+                        type: 'number',
+                        min: question.validation?.min,
+                        max: question.validation?.max,
+                        blockBelowMin: question.validation?.blockBelowMin ?? false,
+                        message: question.validation?.message,
+                      }
+                    : undefined,
+                })
+              }
+            />
+            <span>Numeric validation</span>
+          </label>
+
+          {question.validation?.type === 'number' && (
+            <div className="form-builder-grid">
+              <label className="field">
+                <span>Minimum</span>
+                <input
+                  className="search-input"
+                  type="number"
+                  value={question.validation.min ?? ''}
+                  onChange={e =>
+                    patch({
+                      validation: {
+                        ...question.validation!,
+                        min: e.target.value === '' ? undefined : Number(e.target.value),
+                      },
+                    })
+                  }
+                />
+              </label>
+              <label className="field">
+                <span>Maximum</span>
+                <input
+                  className="search-input"
+                  type="number"
+                  value={question.validation.max ?? ''}
+                  onChange={e =>
+                    patch({
+                      validation: {
+                        ...question.validation!,
+                        max: e.target.value === '' ? undefined : Number(e.target.value),
+                      },
+                    })
+                  }
+                />
+              </label>
+              <label className="field form-builder-checkbox">
+                <input
+                  type="checkbox"
+                  checked={question.validation.blockBelowMin ?? false}
+                  onChange={e =>
+                    patch({
+                      validation: {
+                        ...question.validation!,
+                        blockBelowMin: e.target.checked,
+                      },
+                    })
+                  }
+                />
+                <span>Block below minimum</span>
+              </label>
+              <label className="field form-builder-wide">
+                <span>Validation message</span>
+                <input
+                  className="search-input"
+                  value={question.validation.message ?? ''}
+                  onChange={e =>
+                    patch({
+                      validation: {
+                        ...question.validation!,
+                        message: e.target.value || undefined,
+                      },
+                    })
+                  }
+                />
+              </label>
+            </div>
+          )}
+        </div>
       )}
 
       {supportsOptions && (
@@ -684,14 +796,34 @@ function QuestionEditor({
 
 export function FormBuilderScreen() {
   const formList = useFormList();
+  const catalog = useAdminCatalog();
   const saveDraft = useSaveDraft();
   const publishForm = usePublishForm();
   const migrateForms = useMigrateForms();
 
   const conditionIds = useMemo(() => {
     const fromApi = formList.data?.forms.map(form => form.conditionId) ?? [];
-    return Array.from(new Set([...fromApi, ...KNOWN_CONDITIONS])).sort();
-  }, [formList.data?.forms]);
+    const fromCatalog = catalog.data?.map(condition => condition.conditionId) ?? [];
+    return Array.from(new Set([...fromCatalog, ...fromApi, ...KNOWN_CONDITIONS])).sort((a, b) => {
+      const catalogA = catalog.data?.find(condition => condition.conditionId === a);
+      const catalogB = catalog.data?.find(condition => condition.conditionId === b);
+      if (catalogA && catalogB) return catalogA.sortOrder - catalogB.sortOrder || a.localeCompare(b);
+      if (catalogA) return -1;
+      if (catalogB) return 1;
+      return a.localeCompare(b);
+    });
+  }, [catalog.data, formList.data?.forms]);
+
+  const conditionLabels = useMemo(
+    () =>
+      new Map(
+        (catalog.data ?? []).map(condition => [
+          condition.conditionId,
+          condition.displayName || condition.conditionId,
+        ]),
+      ),
+    [catalog.data],
+  );
 
   const [conditionId, setConditionId] = useState(conditionIds[0] ?? 'migraine');
   const [draftQuestions, setDraftQuestions] = useState<Question[]>([]);
@@ -831,7 +963,9 @@ export function FormBuilderScreen() {
             }}
           >
             {conditionIds.map(id => (
-              <option key={id} value={id}>{id}</option>
+              <option key={id} value={id}>
+                {conditionLabels.has(id) ? `${conditionLabels.get(id)} (${id})` : id}
+              </option>
             ))}
           </select>
         </label>
