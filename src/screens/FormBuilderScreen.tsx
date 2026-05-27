@@ -59,16 +59,40 @@ function formatDate(value: string | null): string {
   }
 }
 
-function hasContraChanges(previous: Question[], next: Question[]): boolean {
-  const signature = (questions: Question[]) =>
-    JSON.stringify(
-      questions
-        .filter(q => q.contraIndication)
-        .map(q => ({ id: q.id, contraIndication: q.contraIndication }))
-        .sort((a, b) => a.id.localeCompare(b.id)),
-    );
+type ContraChangeSummary = {
+  id: string;
+  label: string;
+  status: 'added' | 'removed' | 'updated';
+};
 
-  return signature(previous) !== signature(next);
+function contraSignature(question?: Question): string {
+  return JSON.stringify(question?.contraIndication ?? null);
+}
+
+function getContraChangeSummaries(previous: Question[], next: Question[]): ContraChangeSummary[] {
+  const previousById = new Map(previous.map(question => [question.id, question]));
+  const nextById = new Map(next.map(question => [question.id, question]));
+  const ids = Array.from(new Set([...previousById.keys(), ...nextById.keys()])).sort();
+
+  return ids.flatMap(id => {
+    const previousQuestion = previousById.get(id);
+    const nextQuestion = nextById.get(id);
+    const previousContra = Boolean(previousQuestion?.contraIndication);
+    const nextContra = Boolean(nextQuestion?.contraIndication);
+
+    if (contraSignature(previousQuestion) === contraSignature(nextQuestion)) {
+      return [];
+    }
+
+    const label = nextQuestion?.label || previousQuestion?.label || id;
+    const status = !previousContra && nextContra
+      ? 'added'
+      : previousContra && !nextContra
+        ? 'removed'
+        : 'updated';
+
+    return [{ id, label, status }];
+  });
 }
 
 function normalizeQuestion(question: Question): Question {
@@ -371,6 +395,75 @@ function VersionHistoryPanel({
         </div>
       )}
     </section>
+  );
+}
+
+function ClinicalReviewModal({
+  changes,
+  reviewerName,
+  error,
+  isBusy,
+  onReviewerNameChange,
+  onCancel,
+  onConfirm,
+}: {
+  changes: ContraChangeSummary[];
+  reviewerName: string;
+  error: string | null;
+  isBusy: boolean;
+  onReviewerNameChange: (value: string) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section className="modal-panel" role="dialog" aria-modal="true" aria-labelledby="clinical-review-title">
+        <div className="modal-header">
+          <div>
+            <p className="eyebrow">Clinical Review</p>
+            <h3 id="clinical-review-title">Confirm contraindication changes</h3>
+          </div>
+          <button type="button" className="modal-close" onClick={onCancel} disabled={isBusy} aria-label="Close">
+            ×
+          </button>
+        </div>
+
+        <div className="modal-body">
+          <p className="form-builder-help">
+            These contraindication rules changed and require clinical review before publishing.
+          </p>
+          <ul className="clinical-review-list">
+            {changes.map(change => (
+              <li key={change.id}>
+                <strong>{change.label}</strong>
+                <span>{change.id} · {change.status}</span>
+              </li>
+            ))}
+          </ul>
+
+          <label className="field">
+            <span>Reviewer name</span>
+            <input
+              className="search-input"
+              value={reviewerName}
+              onChange={e => onReviewerNameChange(e.target.value)}
+              autoFocus
+            />
+          </label>
+
+          {error && <div className="screen-error" role="alert">{error}</div>}
+        </div>
+
+        <div className="modal-actions">
+          <button type="button" className="export-button" onClick={onCancel} disabled={isBusy}>
+            Cancel
+          </button>
+          <button type="button" className="btn-primary-sm" onClick={onConfirm} disabled={isBusy}>
+            Confirm and publish
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -857,6 +950,12 @@ export function FormBuilderScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showReloadAction, setShowReloadAction] = useState(false);
+  const [pendingReview, setPendingReview] = useState<{
+    questions: Question[];
+    changes: ContraChangeSummary[];
+  } | null>(null);
+  const [reviewerName, setReviewerName] = useState('');
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   const formConfig = useFormConfig(conditionId);
   const versions = useFormVersions(conditionId);
@@ -878,6 +977,8 @@ export function FormBuilderScreen() {
       setMessage(null);
       setErrorMessage(null);
       setShowReloadAction(false);
+      setPendingReview(null);
+      setReviewError(null);
     } else if (configMissing) {
       setDraftQuestions([]);
     }
@@ -910,6 +1011,22 @@ export function FormBuilderScreen() {
     }
   }
 
+  async function publishNormalizedQuestions(
+    normalizedQuestions: Question[],
+    clinicalReview?: ClinicalReviewMetadata,
+  ) {
+    const savedConfig = await saveDraft.mutateAsync({ conditionId, questions: normalizedQuestions });
+    await publishForm.mutateAsync({
+      conditionId,
+      expectedUpdatedAt: savedConfig.updatedAt,
+      clinicalReview,
+    });
+    setPendingReview(null);
+    setReviewerName('');
+    setReviewError(null);
+    setMessage('Form published.');
+  }
+
   async function handlePublish() {
     if (!config) {
       setErrorMessage('Save a draft before publishing.');
@@ -919,31 +1036,19 @@ export function FormBuilderScreen() {
     setMessage(null);
     setErrorMessage(null);
     setShowReloadAction(false);
-    let clinicalReview: ClinicalReviewMetadata | undefined;
+    setReviewError(null);
     const normalizedQuestions = normalizeDraftQuestions(draftQuestions);
     setDraftQuestions(normalizedQuestions);
+    const contraChanges = getContraChangeSummaries(config.publishedQuestions, normalizedQuestions);
 
-    if (hasContraChanges(config.publishedQuestions, normalizedQuestions)) {
-      const reviewedByName = window.prompt('Clinical reviewer name required for contraindication changes');
-      if (!reviewedByName) {
-        setErrorMessage('Clinical review is required before publishing contraindication changes.');
-        return;
-      }
-      clinicalReview = {
-        reviewedBy: reviewedByName,
-        reviewedByName,
-        reviewedAt: new Date().toISOString(),
-      };
+    if (contraChanges.length > 0) {
+      setPendingReview({ questions: normalizedQuestions, changes: contraChanges });
+      setReviewerName('');
+      return;
     }
 
     try {
-      const savedConfig = await saveDraft.mutateAsync({ conditionId, questions: normalizedQuestions });
-      await publishForm.mutateAsync({
-        conditionId,
-        expectedUpdatedAt: savedConfig.updatedAt,
-        clinicalReview,
-      });
-      setMessage('Form published.');
+      await publishNormalizedQuestions(normalizedQuestions);
     } catch (err) {
       if (err instanceof ApiClientError && err.code === 'CONCURRENT_EDIT') {
         setErrorMessage('Another admin modified this form. Reload to see the latest version.');
@@ -951,6 +1056,35 @@ export function FormBuilderScreen() {
         return;
       }
       setErrorMessage(err instanceof Error ? err.message : 'Publish failed.');
+    }
+  }
+
+  async function handleClinicalReviewConfirm() {
+    if (!pendingReview) return;
+
+    const reviewedByName = reviewerName.trim();
+    if (!reviewedByName) {
+      setReviewError('Reviewer name is required.');
+      return;
+    }
+
+    setReviewError(null);
+    setMessage(null);
+    setErrorMessage(null);
+    try {
+      await publishNormalizedQuestions(pendingReview.questions, {
+        reviewedBy: reviewedByName,
+        reviewedByName,
+        reviewedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      if (err instanceof ApiClientError && err.code === 'CONCURRENT_EDIT') {
+        setPendingReview(null);
+        setErrorMessage('Another admin modified this form. Reload to see the latest version.');
+        setShowReloadAction(true);
+        return;
+      }
+      setReviewError(err instanceof Error ? err.message : 'Publish failed.');
     }
   }
 
@@ -982,6 +1116,25 @@ export function FormBuilderScreen() {
 
   return (
     <div className="screen form-builder-screen">
+      {pendingReview && (
+        <ClinicalReviewModal
+          changes={pendingReview.changes}
+          reviewerName={reviewerName}
+          error={reviewError}
+          isBusy={isBusy}
+          onReviewerNameChange={value => {
+            setReviewerName(value);
+            setReviewError(null);
+          }}
+          onCancel={() => {
+            if (isBusy) return;
+            setPendingReview(null);
+            setReviewError(null);
+          }}
+          onConfirm={handleClinicalReviewConfirm}
+        />
+      )}
+
       <div className="form-builder-toolbar">
         <label className="field form-builder-condition">
           <span>Condition</span>

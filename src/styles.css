@@ -842,6 +842,90 @@ nav {
   white-space: pre-wrap;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(23, 33, 27, 0.48);
+}
+
+.modal-panel {
+  display: grid;
+  gap: 18px;
+  width: min(560px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  border: 1px solid #dce4d8;
+  border-radius: 8px;
+  padding: 22px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(23, 33, 27, 0.28);
+}
+
+.modal-header,
+.modal-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.modal-header h3 {
+  margin: 2px 0 0;
+}
+
+.modal-close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #dce4d8;
+  border-radius: 50%;
+  background: #f8faf7;
+  color: #52645a;
+  cursor: pointer;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.modal-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.modal-body {
+  display: grid;
+  gap: 14px;
+}
+
+.modal-actions {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.clinical-review-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clinical-review-list li {
+  display: grid;
+  gap: 3px;
+  border: 1px solid #edf2ee;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #f8faf7;
+}
+
+.clinical-review-list span {
+  color: #63756a;
+  font-size: 0.8rem;
+}
+
 .form-preview-list {
   display: grid;
   gap: 12px;
